@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS user (
+    "login" VARCHAR PRIMARY KEY,
+	"password" VARCHAR NOT NULL,
+	"created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
