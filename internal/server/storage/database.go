@@ -32,6 +32,26 @@ func NewDB(databaseUri string, logger *zap.SugaredLogger) *DBStorage {
 	return db
 }
 
+func (dbpool *DBStorage) GetUser(ctx context.Context, login string) (User, error) {
+	var user User
+	err := dbpool.QueryRow(ctx, "SELECT login, password FROM users WHERE login = $1", login).
+		Scan(&user.Login, &user.Password)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (dbpool *DBStorage) StoreUser(ctx context.Context, login string, passwordHash string) error {
+	_, err := dbpool.Exec(ctx, `
+			INSERT INTO users (login, password) VALUES ($1, $2)
+		`, login, passwordHash)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (dbpool *DBStorage) CloseConnection() {
 	dbpool.Close()
 }

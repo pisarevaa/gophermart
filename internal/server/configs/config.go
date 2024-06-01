@@ -1,4 +1,4 @@
-package server
+package configs
 
 import (
 	"flag"
@@ -12,6 +12,7 @@ type Config struct {
 	DatabaseUri          string `env:"DATABASE_URI"`
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 	GinMode              string `env:"GIN_MODE"`
+	SecretKey            string `env:"SECRET_KEY"`
 }
 
 func NewConfig() Config {
@@ -21,6 +22,7 @@ func NewConfig() Config {
 	flag.StringVar(&config.GinMode, "g", "debug", "gin server logs mode")
 	flag.StringVar(&config.DatabaseUri, "d", "postgres://gophermart:CC7B02B06C4C1CF81FAE7D8C46C429EC@localhost:5432/gophermart?sslmode=disable", "database uri")
 	flag.StringVar(&config.AccrualSystemAddress, "r", "", "charging system address")
+	flag.StringVar(&config.SecretKey, "k", "7fd315fd5f381bb9035d003dbd904102", "secret key to hash password")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		log.Fatal("used not declared arguments")
@@ -43,6 +45,9 @@ func NewConfig() Config {
 	}
 	if envConfig.AccrualSystemAddress != "" {
 		config.AccrualSystemAddress = envConfig.AccrualSystemAddress
+	}
+	if envConfig.SecretKey != "" {
+		config.SecretKey = envConfig.SecretKey
 	}
 	return config
 }
