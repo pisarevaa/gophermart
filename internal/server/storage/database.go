@@ -14,13 +14,13 @@ type DBStorage struct {
 	*pgxpool.Pool
 }
 
-func NewDBStorage(dsn string, logger *zap.SugaredLogger) *DBStorage {
-	dbpool, err := pgxpool.New(context.Background(), dsn)
+func NewDB(databaseUri string, logger *zap.SugaredLogger) *DBStorage {
+	dbpool, err := pgxpool.New(context.Background(), databaseUri)
 	if err != nil {
 		logger.Error("Unable to create connection pool: %v", err)
 		return nil
 	}
-	m, err := migrate.New("file://migrations", dsn)
+	m, err := migrate.New("file://migrations", databaseUri)
 	if err != nil {
 		logger.Error("Unable to migrate tables: ", err)
 	}
