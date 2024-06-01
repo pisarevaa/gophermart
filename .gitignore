@@ -23,5 +23,5 @@ vendor/
 .vscode
 
 # Own notes to project
-/docs
 .env
+/report

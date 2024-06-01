@@ -3,8 +3,9 @@ package handlers_test
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,6 +20,7 @@ import (
 	"github.com/pisarevaa/gophermart/internal/server/configs"
 	mock "github.com/pisarevaa/gophermart/internal/server/mocks"
 	"github.com/pisarevaa/gophermart/internal/server/storage"
+	"github.com/pisarevaa/gophermart/internal/server/utils"
 )
 
 type ServerTestSuite struct {
@@ -55,19 +57,19 @@ func MakeRequest(
 	return resp, string(respBody)
 }
 
-func (suite *ServerTestSuite) TestServerUpdateAndGetMetricsJSONBatch() {
+func (suite *ServerTestSuite) TestRegisterUser() {
 	ctrl := gomock.NewController(suite.T())
 	defer ctrl.Finish()
 
 	m := mock.NewMockStorage(ctrl)
 
 	m.EXPECT().
-	GetUser(gomock.Any(), gomock.Any()).
+		GetUser(gomock.Any(), gomock.Any()).
 		Return(storage.User{}, errors.New("user exists"))
 
 	m.EXPECT().
-	StoreUser(gomock.Any(), gomock.Any(), gomock.Any()).
-	Return(nil)
+		StoreUser(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
 
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
 	defer ts.Close()
@@ -76,9 +78,44 @@ func (suite *ServerTestSuite) TestServerUpdateAndGetMetricsJSONBatch() {
 		Login:    "test",
 		Password: "123",
 	}
-	userJson, _ := json.Marshal(user)
+	userJson, err := json.Marshal(user)
+	suite.Require().NoError(err)
 
 	resp, _ := MakeRequest(suite, ts, "POST", "/api/user/register", userJson)
+
+	defer resp.Body.Close()
+	suite.Require().Equal(200, resp.StatusCode)
+}
+
+func (suite *ServerTestSuite) TestLogin() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+
+	m := mock.NewMockStorage(ctrl)
+
+	passwordHash, err := utils.GetPasswordHash("123", suite.cfg.SecretKey)
+	fmt.Println("passwordHash", passwordHash)
+	suite.Require().NoError(err)
+	dbUser := storage.User{
+		Login:    "test",
+		Password: passwordHash,
+	}
+
+	m.EXPECT().
+		GetUser(gomock.Any(), gomock.Any()).
+		Return(dbUser, nil)
+
+	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
+	defer ts.Close()
+
+	user := storage.User{
+		Login:    "test",
+		Password: "123",
+	}
+
+	userJson, _ := json.Marshal(user)
+
+	resp, _ := MakeRequest(suite, ts, "POST", "/api/user/login", userJson)
 
 	defer resp.Body.Close()
 	suite.Require().Equal(200, resp.StatusCode)

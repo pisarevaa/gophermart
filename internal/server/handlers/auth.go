@@ -9,7 +9,16 @@ import (
 	"github.com/pisarevaa/gophermart/internal/server/utils"
 )
 
-func (s *Server) RegisterUser(c *gin.Context) {
+// PingExample godoc
+//	@Summary	ping example
+//	@Schemes
+//	@Description	do ping
+//	@Tags			example
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{string}	Helloworld
+//	@Router			/example/helloworld [get]
+func (s *Service) RegisterUser(c *gin.Context) {
 	var user storage.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -39,7 +48,7 @@ func (s *Server) RegisterUser(c *gin.Context) {
 	})
 }
 
-func (s *Server) LoginUser(c *gin.Context) {
+func (s *Service) LoginUser(c *gin.Context) {
 	var user storage.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
