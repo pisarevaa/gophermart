@@ -9,5 +9,5 @@ import (
 type Server struct {
 	Config configs.Config
 	Logger *zap.SugaredLogger
-	Repo   *storage.DBStorage
+	Repo   storage.Storage
 }

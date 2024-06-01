@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRouter(cfg configs.Config, logger *zap.SugaredLogger, repo *storage.DBStorage) *gin.Engine {
+func NewRouter(cfg configs.Config, logger *zap.SugaredLogger, repo storage.Storage) *gin.Engine {
 	server := handlers.Server{Config: cfg, Logger: logger, Repo: repo}
 	if cfg.GinMode == gin.ReleaseMode {
 		gin.SetMode(gin.ReleaseMode)
