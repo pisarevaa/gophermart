@@ -13,6 +13,7 @@ type Config struct {
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 	GinMode              string `env:"GIN_MODE"`
 	SecretKey            string `env:"SECRET_KEY"`
+	TokenExpSec          int64  `env:"TOKEN_EXP"`
 }
 
 func NewConfig() Config {
@@ -20,9 +21,15 @@ func NewConfig() Config {
 
 	flag.StringVar(&config.Host, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&config.GinMode, "g", "debug", "gin server logs mode")
-	flag.StringVar(&config.DatabaseUri, "d", "postgres://gophermart:CC7B02B06C4C1CF81FAE7D8C46C429EC@localhost:5432/gophermart?sslmode=disable", "database uri")
+	flag.StringVar(
+		&config.DatabaseUri,
+		"d",
+		"postgres://gophermart:CC7B02B06C4C1CF81FAE7D8C46C429EC@localhost:5432/gophermart?sslmode=disable",
+		"database uri",
+	)
 	flag.StringVar(&config.AccrualSystemAddress, "r", "", "charging system address")
 	flag.StringVar(&config.SecretKey, "k", "7fd315fd5f381bb9035d003dbd904102", "secret key to hash password")
+	flag.Int64Var(&config.TokenExpSec, "t", 7200, "time in sec to expire token")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		log.Fatal("used not declared arguments")
@@ -48,6 +55,9 @@ func NewConfig() Config {
 	}
 	if envConfig.SecretKey != "" {
 		config.SecretKey = envConfig.SecretKey
+	}
+	if envConfig.TokenExpSec != 0 {
+		config.TokenExpSec = envConfig.TokenExpSec
 	}
 	return config
 }
