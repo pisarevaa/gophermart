@@ -1,103 +1,88 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
+	"time"
 
+	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/gin-gonic/gin"
 )
 
+type OrderReponse struct {
+	Number     string    `json:"number"     binding:"required"`
+	Status     string    `json:"status"     binding:"required"`
+	Accrual    int64     `json:"accrual"    binding:"required"`
+	UploadedAt time.Time `json:"uploadedAt" binding:"required"`
+}
+
 func (s *Service) AddOrder(c *gin.Context) {
-	s.Logger.Info("Login", c.GetString("Login"))
-	c.JSON(http.StatusOK, gin.H{
+	login := c.GetString("Login")
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	number := string(body)
+	if number == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "order number is empty string"})
+		return
+	}
+	err = goluhn.Validate(number)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	order, err := s.Repo.GetOrder(c, number)
+	if err == nil {
+		if login == order.Login {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+			})
+			return
+		} else {
+			c.JSON(http.StatusConflict, gin.H{"error": "order number is already added by other user"})
+			return
+		}
+	}
+
+	err = s.Repo.StoreOrder(c, number, login)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{
 		"success": true,
 	})
 }
 
 func (s *Service) GetOrders(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-	})
+	login := c.GetString("Login")
+
+	orders, err := s.Repo.GetOrders(c, login)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(orders) == 0 {
+		c.JSON(http.StatusNoContent, []OrderReponse{})
+	}
+
+	var ordersResponse []OrderReponse
+	for _, order := range orders {
+		ordersResponse = append(
+			ordersResponse,
+			OrderReponse{
+				Number:     order.Number,
+				Status:     order.Status,
+				Accrual:    order.Accrual,
+				UploadedAt: order.UploadedAt,
+			},
+		)
+	}
+
+	c.JSON(http.StatusOK, ordersResponse)
 }
-
-// #### **Загрузка номера заказа**
-
-// Хендлер: `POST /api/user/orders`.
-
-// Хендлер доступен только аутентифицированным пользователям. Номером заказа является последовательность цифр произвольной длины.
-
-// Номер заказа может быть проверен на корректность ввода с помощью [алгоритма Луна](https://ru.wikipedia.org/wiki/Алгоритм_Луна){target="_blank"}.
-
-// Формат запроса:
-
-// ```
-// POST /api/user/orders HTTP/1.1
-// Content-Type: text/plain
-// ...
-
-// 12345678903
-// ```
-
-// Возможные коды ответа:
-
-// - `200` — номер заказа уже был загружен этим пользователем;
-// - `202` — новый номер заказа принят в обработку;
-// - `400` — неверный формат запроса;
-// - `401` — пользователь не аутентифицирован;
-// - `409` — номер заказа уже был загружен другим пользователем;
-// - `422` — неверный формат номера заказа;
-// - `500` — внутренняя ошибка сервера.
-
-// #### **Получение списка загруженных номеров заказов**
-
-// Хендлер: `GET /api/user/orders`.
-
-// Хендлер доступен только авторизованному пользователю. Номера заказа в выдаче должны быть отсортированы по времени загрузки от самых новых к самым старым. Формат даты — RFC3339.
-
-// Доступные статусы обработки расчётов:
-
-// - `NEW` — заказ загружен в систему, но не попал в обработку;
-// - `PROCESSING` — вознаграждение за заказ рассчитывается;
-// - `INVALID` — система расчёта вознаграждений отказала в расчёте;
-// - `PROCESSED` — данные по заказу проверены и информация о расчёте успешно получена.
-
-// Формат запроса:
-
-// ```
-// GET /api/user/orders HTTP/1.1
-// Content-Length: 0
-// ```
-
-// Возможные коды ответа:
-
-// - `200` — успешная обработка запроса.
-
-//   Формат ответа:
-
-//     ```
-//     200 OK HTTP/1.1
-//     Content-Type: application/json
-//     ...
-
-//     [
-//     	{
-//             "number": "9278923470",
-//             "status": "PROCESSED",
-//             "accrual": 500,
-//             "uploaded_at": "2020-12-10T15:15:45+03:00"
-//         },
-//         {
-//             "number": "12345678903",
-//             "status": "PROCESSING",
-//             "uploaded_at": "2020-12-10T15:12:01+03:00"
-//         },
-//         {
-//             "number": "346436439",
-//             "status": "INVALID",
-//             "uploaded_at": "2020-12-09T16:09:53+03:00"
-//         }
-//     ]
-//     ```
-
-// - `204` — нет данных для ответа.
-// - `401` — пользователь не авторизован.
-// - `500` — внутренняя ошибка сервера.

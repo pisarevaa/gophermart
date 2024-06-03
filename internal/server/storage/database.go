@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver
@@ -46,6 +47,52 @@ func (dbpool *DBStorage) StoreUser(ctx context.Context, login string, passwordHa
 	_, err := dbpool.Exec(ctx, `
 			INSERT INTO users (login, password) VALUES ($1, $2)
 		`, login, passwordHash)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dbpool *DBStorage) GetOrder(ctx context.Context, number string) (Order, error) {
+	var order Order
+	err := dbpool.QueryRow(ctx, "SELECT number, status, accrual, login, uploaded_at FROM orders WHERE number = $1", number).
+		Scan(&order.Number, &order.Status, &order.Accrual, &order.Login, &order.UploadedAt)
+	if err != nil {
+		return order, err
+	}
+	return order, nil
+}
+
+func (dbpool *DBStorage) GetOrders(ctx context.Context, login string) ([]Order, error) {
+	var orders []Order
+	rows, err := dbpool.Query(
+		ctx,
+		"SELECT number, status, accrual, login, uploaded_at FROM orders WHERE login = $1",
+		login,
+	)
+	if err != nil {
+		return []Order{}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var o Order
+		err = rows.Scan(&o.Number, &o.Status, &o.Accrual, &o.Login, &o.UploadedAt)
+		if err != nil {
+			return []Order{}, err
+		}
+		orders = append(orders, o)
+	}
+	return orders, nil
+}
+
+func (dbpool *DBStorage) StoreOrder(ctx context.Context, number, login string) error {
+	loc, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		return err
+	}
+	_, err = dbpool.Exec(ctx, `
+			INSERT INTO orders (number, status, accrual, login, uploaded_at) VALUES ($1, $2, $3, $4, $5)
+		`, number, "NEW", 0, login, time.Now().In(loc))
 	if err != nil {
 		return err
 	}

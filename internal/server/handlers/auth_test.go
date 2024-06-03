@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -27,11 +26,17 @@ type ServerTestSuite struct {
 	suite.Suite
 	cfg    configs.Config
 	logger *zap.SugaredLogger
+	token  string
 }
+
+const login = "test"
 
 func (suite *ServerTestSuite) SetupSuite() {
 	suite.cfg = configs.NewConfig()
 	suite.logger = server.NewLogger()
+	token, err := utils.GenerateJWTString(suite.cfg.TokenExpSec, suite.cfg.SecretKey, login)
+	suite.Require().NoError(err)
+	suite.token = token
 }
 
 func TestAgentSuite(t *testing.T) {
@@ -94,7 +99,6 @@ func (suite *ServerTestSuite) TestLogin() {
 	m := mock.NewMockStorage(ctrl)
 
 	passwordHash, err := utils.GetPasswordHash("123", suite.cfg.SecretKey)
-	fmt.Println("passwordHash", passwordHash)
 	suite.Require().NoError(err)
 	dbUser := storage.User{
 		Login:    "test",

@@ -47,6 +47,36 @@ func (mr *MockStorageMockRecorder) CloseConnection() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseConnection", reflect.TypeOf((*MockStorage)(nil).CloseConnection))
 }
 
+// GetOrder mocks base method.
+func (m *MockStorage) GetOrder(ctx context.Context, number string) (storage.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrder", ctx, number)
+	ret0, _ := ret[0].(storage.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrder indicates an expected call of GetOrder.
+func (mr *MockStorageMockRecorder) GetOrder(ctx, number interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrder", reflect.TypeOf((*MockStorage)(nil).GetOrder), ctx, number)
+}
+
+// GetOrders mocks base method.
+func (m *MockStorage) GetOrders(ctx context.Context, login string) ([]storage.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrders", ctx, login)
+	ret0, _ := ret[0].([]storage.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrders indicates an expected call of GetOrders.
+func (mr *MockStorageMockRecorder) GetOrders(ctx, login interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrders", reflect.TypeOf((*MockStorage)(nil).GetOrders), ctx, login)
+}
+
 // GetUser mocks base method.
 func (m *MockStorage) GetUser(ctx context.Context, login string) (storage.User, error) {
 	m.ctrl.T.Helper()
@@ -60,6 +90,20 @@ func (m *MockStorage) GetUser(ctx context.Context, login string) (storage.User, 
 func (mr *MockStorageMockRecorder) GetUser(ctx, login interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockStorage)(nil).GetUser), ctx, login)
+}
+
+// StoreOrder mocks base method.
+func (m *MockStorage) StoreOrder(ctx context.Context, number, login string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StoreOrder", ctx, number, login)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StoreOrder indicates an expected call of StoreOrder.
+func (mr *MockStorageMockRecorder) StoreOrder(ctx, number, login interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreOrder", reflect.TypeOf((*MockStorage)(nil).StoreOrder), ctx, number, login)
 }
 
 // StoreUser mocks base method.
