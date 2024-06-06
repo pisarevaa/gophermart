@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"encoding/json"
 	"net/http/httptest"
+	"time"
 
 	"github.com/golang/mock/gomock"
 
@@ -45,4 +46,89 @@ func (suite *ServerTestSuite) TestGetBalance() {
 	suite.Require().Equal(200, resp.StatusCode)
 	suite.Require().Equal(int64(500), userBalanceResponse.Current)
 	suite.Require().Equal(int64(300), userBalanceResponse.Withdrawn)
+}
+
+func (suite *ServerTestSuite) TestWithdrawBalance() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+
+	m := mock.NewMockStorage(ctrl)
+
+	withdraw := handlers.Withdraw{
+		Order: "123",
+		Sum:   int64(200),
+	}
+	withdrawJson, err := json.Marshal(withdraw)
+	suite.Require().NoError(err)
+
+	user := storage.User{
+		Login:    "test",
+		Password: "123",
+		Balance:  int64(500),
+	}
+
+	order := storage.Order{
+		Number:     "123",
+		Status:     "NEW",
+		Accrual:    int64(0),
+		Login:      "test",
+		UploadedAt: time.Now(),
+	}
+
+	m.EXPECT().
+		GetUser(gomock.Any(), gomock.Any()).
+		Return(user, nil)
+
+	m.EXPECT().
+		GetOrder(gomock.Any(), gomock.Any()).
+		Return(order, nil)
+
+	m.EXPECT().
+		WithdrawUserBalance(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	m.EXPECT().
+		AccrualOrderBalance(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
+	defer ts.Close()
+
+	resp, _ := MakeAuthRequest(suite, ts, "POST", "/api/user/balance/withdraw", withdrawJson, true, suite.token)
+
+	defer resp.Body.Close()
+	suite.Require().Equal(200, resp.StatusCode)
+}
+
+func (suite *ServerTestSuite) TestWithdrawls() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+
+	m := mock.NewMockStorage(ctrl)
+
+	orders := []storage.Order{{
+		Number:     "123",
+		Status:     "NEW",
+		Accrual:    int64(0),
+		Login:      "test",
+		UploadedAt: time.Now(),
+	}}
+
+	m.EXPECT().
+		GetOrders(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(orders, nil)
+
+	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
+	defer ts.Close()
+
+	resp, bodyResp := MakeAuthRequest(suite, ts, "GET", "/api/user/withdrawals", nil, true, suite.token)
+
+	var withdrawalsResponse []handlers.WithdrawalsReponse
+
+	err := json.Unmarshal([]byte(bodyResp), &withdrawalsResponse)
+	suite.Require().NoError(err)
+
+	defer resp.Body.Close()
+	suite.Require().Equal(200, resp.StatusCode)
+	suite.Require().Len(withdrawalsResponse, 1)
 }
