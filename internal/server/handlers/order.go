@@ -61,7 +61,7 @@ func (s *Service) AddOrder(c *gin.Context) {
 func (s *Service) GetOrders(c *gin.Context) {
 	login := c.GetString("Login")
 
-	orders, err := s.Repo.GetOrders(c, login)
+	orders, err := s.Repo.GetOrders(c, login, false)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

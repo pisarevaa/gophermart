@@ -79,7 +79,7 @@ func (suite *ServerTestSuite) TestRegisterUser() {
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
 	defer ts.Close()
 
-	user := storage.User{
+	user := storage.RegisterUser{
 		Login:    "test",
 		Password: "123",
 	}
@@ -103,6 +103,7 @@ func (suite *ServerTestSuite) TestLogin() {
 	dbUser := storage.User{
 		Login:    "test",
 		Password: passwordHash,
+		Balance:  500,
 	}
 
 	m.EXPECT().
@@ -112,7 +113,7 @@ func (suite *ServerTestSuite) TestLogin() {
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
 	defer ts.Close()
 
-	user := storage.User{
+	user := storage.RegisterUser{
 		Login:    "test",
 		Password: "123",
 	}

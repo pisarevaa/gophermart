@@ -86,13 +86,13 @@ func (suite *ServerTestSuite) TestGetOrders() {
 	}}
 
 	m.EXPECT().
-		GetOrders(gomock.Any(), gomock.Any()).
+		GetOrders(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(orders, nil)
 
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
 	defer ts.Close()
 
-	resp, bodyResp := MakeAuthRequest(suite, ts, "GET", "/api/user/orders", []byte(""), true, suite.token)
+	resp, bodyResp := MakeAuthRequest(suite, ts, "GET", "/api/user/orders", nil, true, suite.token)
 
 	var ordersResponse []handlers.OrderReponse
 

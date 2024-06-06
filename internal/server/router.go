@@ -30,6 +30,9 @@ func NewRouter(cfg configs.Config, logger *zap.SugaredLogger, repo storage.Stora
 		{
 			authorized.POST("/orders", s.AddOrder)
 			authorized.GET("/orders", s.GetOrders)
+			authorized.GET("/balance", s.GetBalance)
+			authorized.POST("/balance/withdraw", s.WithdrawBalance)
+			authorized.GET("/withdrawals", s.Withdrawls)
 		}
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

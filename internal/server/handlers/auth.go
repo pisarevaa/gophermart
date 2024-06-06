@@ -20,7 +20,7 @@ import (
 //	@Success		200	{string}	Helloworld
 //	@Router			/example/helloworld [get]
 func (s *Service) RegisterUser(c *gin.Context) {
-	var user storage.User
+	var user storage.RegisterUser
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -50,7 +50,7 @@ func (s *Service) RegisterUser(c *gin.Context) {
 }
 
 func (s *Service) LoginUser(c *gin.Context) {
-	var user storage.User
+	var user storage.RegisterUser
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
