@@ -16,6 +16,10 @@ type OrderReponse struct {
 	UploadedAt time.Time `json:"uploadedAt" binding:"required"`
 }
 
+type OrderUri struct {
+	Number string `uri:"number" binding:"required"`
+}
+
 func (s *Service) AddOrder(c *gin.Context) {
 	login := c.GetString("Login")
 	body, err := io.ReadAll(c.Request.Body)
@@ -85,4 +89,32 @@ func (s *Service) GetOrders(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, ordersResponse)
+}
+
+func (s *Service) GetOrder(c *gin.Context) {
+	login := c.GetString("Login")
+
+	var orderUri OrderUri
+	if err := c.ShouldBindUri(&orderUri); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	order, err := s.Repo.GetOrder(c, orderUri.Number)
+	if err != nil {
+		c.JSON(http.StatusNoContent, gin.H{"success": true})
+		return
+	}
+
+	if login != order.Login {
+		c.JSON(http.StatusConflict, gin.H{"error": "order number is already added by other user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, OrderReponse{
+		Number:     order.Number,
+		Status:     order.Status,
+		Accrual:    order.Accrual,
+		UploadedAt: order.UploadedAt,
+	})
 }
