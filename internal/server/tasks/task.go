@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -65,6 +66,10 @@ func (s *Task) UpdateOrderStatuses(ctx context.Context) error {
 	status, err := s.GetOrderStatus(orderToUpdate.Number)
 	if err != nil {
 		return err
+	}
+
+	if status.Status == "NEW" || status.Status == "PROCESSING" {
+		return errors.New("order is not ready")
 	}
 
 	err = tx.UpdateOrderStatus(ctx, status)

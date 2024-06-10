@@ -50,6 +50,7 @@ func (suite *ServerTestSuite) TestWithdrawBalance() {
 	defer ctrl.Finish()
 
 	m := mock.NewMockStorage(ctrl)
+	tx := mock.NewMockTransaction(ctrl)
 
 	withdraw := handlers.Withdraw{
 		Order: "123",
@@ -73,19 +74,26 @@ func (suite *ServerTestSuite) TestWithdrawBalance() {
 	}
 
 	m.EXPECT().
-		GetUser(gomock.Any(), gomock.Any()).
+		BeginTransaction(gomock.Any()).
+		Return(tx, nil)
+
+	tx.EXPECT().GetUserWithLock(gomock.Any(), gomock.Any()).
 		Return(user, nil)
 
-	m.EXPECT().
-		GetOrder(gomock.Any(), gomock.Any()).
+	tx.EXPECT().
+		GetOrderWithLock(gomock.Any(), gomock.Any()).
 		Return(order, nil)
 
-	m.EXPECT().
+	tx.EXPECT().
 		WithdrawUserBalance(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	m.EXPECT().
+	tx.EXPECT().
 		WithdrawOrderBalance(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	tx.EXPECT().
+		Commit(gomock.Any()).
 		Return(nil)
 
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))

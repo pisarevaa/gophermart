@@ -44,7 +44,14 @@ func (s *Service) WithdrawBalance(c *gin.Context) {
 		return
 	}
 
-	user, err := s.Repo.GetUser(c, login)
+	tx, err := s.Repo.BeginTransaction(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer tx.Rollback(c) //nolint:errcheck // ignore check
+
+	user, err := tx.GetUserWithLock(c, login)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user is not found"})
 		return
@@ -55,7 +62,7 @@ func (s *Service) WithdrawBalance(c *gin.Context) {
 		return
 	}
 
-	order, err := s.Repo.GetOrder(c, withdraw.Order)
+	order, err := tx.GetOrderWithLock(c, withdraw.Order)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "order is not found"})
 		return
@@ -66,13 +73,19 @@ func (s *Service) WithdrawBalance(c *gin.Context) {
 		return
 	}
 
-	err = s.Repo.WithdrawUserBalance(c, login, withdraw.Sum)
+	err = tx.WithdrawUserBalance(c, login, withdraw.Sum)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = s.Repo.WithdrawOrderBalance(c, withdraw.Order, withdraw.Sum)
+	err = tx.WithdrawOrderBalance(c, withdraw.Order, withdraw.Sum)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = tx.Commit(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

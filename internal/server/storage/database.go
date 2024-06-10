@@ -58,26 +58,6 @@ func (dbpool *DBStorage) StoreUser(ctx context.Context, login string, passwordHa
 	return nil
 }
 
-func (dbpool *DBStorage) WithdrawUserBalance(ctx context.Context, login string, withdraw int64) error {
-	_, err := dbpool.Exec(ctx, `
-			UPDATE users SET balance = balance - $1, withdrawn = withdrawn + $2 WHERE login = $3
-		`, withdraw, withdraw, login)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (dbpool *DBStorage) WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) error {
-	_, err := dbpool.Exec(ctx, `
-			UPDATE orders SET withdrawn = withdrawn + $1 WHERE number = $2
-		`, withdraw, number)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (dbpool *DBStorage) GetOrder(ctx context.Context, number string) (Order, error) {
 	var order Order
 	err := dbpool.QueryRow(ctx, "SELECT number, status, accrual, withdrawn, login, uploaded_at, processed_at FROM orders WHERE number = $1", number).
@@ -88,10 +68,10 @@ func (dbpool *DBStorage) GetOrder(ctx context.Context, number string) (Order, er
 	return order, nil
 }
 
-func (dbpool *DBStorage) GetOrders(ctx context.Context, login string, onlyAccrual bool) ([]Order, error) {
+func (dbpool *DBStorage) GetOrders(ctx context.Context, login string, onlyWithdrawn bool) ([]Order, error) {
 	sql := "SELECT number, status, accrual, withdrawn, login, uploaded_at, processed_at FROM orders WHERE login = $1 "
-	if onlyAccrual {
-		sql += " AND accrual  >  0"
+	if onlyWithdrawn {
+		sql += " AND withdrawn  >  0"
 	}
 	sql += " ORDER BY uploaded_at ASC"
 	var orders []Order
@@ -168,6 +148,46 @@ func (tx *DBTransaction) AccrualUserBalance(ctx context.Context, accraul int64, 
 	_, err := tx.Exec(ctx, `
 			UPDATE users SET balance = balance + $1 WHERE login = $2
 		`, accraul, login)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (tx *DBTransaction) GetUserWithLock(ctx context.Context, login string) (User, error) {
+	var user User
+	err := tx.QueryRow(ctx, "SELECT login, password, balance FROM users WHERE login = $1 FOR UPDATE", login).
+		Scan(&user.Login, &user.Password, &user.Balance)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (tx *DBTransaction) GetOrderWithLock(ctx context.Context, number string) (Order, error) {
+	var order Order
+	err := tx.QueryRow(ctx, "SELECT number, status, accrual, withdrawn, login, uploaded_at, processed_at FROM orders WHERE number = $1", number).
+		Scan(&order.Number, &order.Status, &order.Accrual, &order.Withdrawn, &order.Login, &order.UploadedAt, &order.ProcessedAt)
+	if err != nil {
+		return order, err
+	}
+	return order, nil
+}
+
+func (tx *DBTransaction) WithdrawUserBalance(ctx context.Context, login string, withdraw int64) error {
+	_, err := tx.Exec(ctx, `
+			UPDATE users SET balance = balance - $1, withdrawn = withdrawn + $2 WHERE login = $3
+		`, withdraw, withdraw, login)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (tx *DBTransaction) WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) error {
+	_, err := tx.Exec(ctx, `
+			UPDATE orders SET withdrawn = withdrawn + $1 WHERE number = $2
+		`, withdraw, number)
 	if err != nil {
 		return err
 	}

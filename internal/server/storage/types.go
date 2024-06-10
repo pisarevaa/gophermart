@@ -8,10 +8,8 @@ import (
 type Storage interface {
 	GetUser(ctx context.Context, login string) (user User, err error)
 	StoreUser(ctx context.Context, login string, passwordHash string) (err error)
-	WithdrawUserBalance(ctx context.Context, login string, withdraw int64) (err error)
-	WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) (err error)
 	GetOrder(ctx context.Context, number string) (order Order, err error)
-	GetOrders(ctx context.Context, login string, onlyAccrual bool) (orders []Order, err error)
+	GetOrders(ctx context.Context, login string, onlyWithdrawn bool) (orders []Order, err error)
 	StoreOrder(ctx context.Context, number, login string) (err error)
 	BeginTransaction(ctx context.Context) (tx *DBTransaction, err error)
 	CloseConnection()
@@ -21,6 +19,11 @@ type Transaction interface {
 	GetOrderToUpdateStatus(ctx context.Context) (orderToUpdate OrderToUpdate, err error)
 	UpdateOrderStatus(ctx context.Context, order OrderStatus) (err error)
 	AccrualUserBalance(ctx context.Context, accraul int64, login string) (err error)
+	GetUserWithLock(ctx context.Context, login string) (user User, err error)
+	GetOrderWithLock(ctx context.Context, number string) (order Order, err error)
+	WithdrawUserBalance(ctx context.Context, login string, withdraw int64) (err error)
+	WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) (err error)
+	Commit(ctx context.Context) (err error)
 }
 
 type RegisterUser struct {
