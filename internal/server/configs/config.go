@@ -14,6 +14,7 @@ type Config struct {
 	GinMode              string `env:"GIN_MODE"`
 	SecretKey            string `env:"SECRET_KEY"`
 	TokenExpSec          int64  `env:"TOKEN_EXP"`
+	TaskInterval         int64  `env:"TASK_INTERVAL"`
 }
 
 func NewConfig() Config {
@@ -30,6 +31,7 @@ func NewConfig() Config {
 	flag.StringVar(&config.AccrualSystemAddress, "r", "", "charging system address")
 	flag.StringVar(&config.SecretKey, "k", "7fd315fd5f381bb9035d003dbd904102", "secret key to hash password")
 	flag.Int64Var(&config.TokenExpSec, "t", 7200, "time in sec to expire token")
+	flag.Int64Var(&config.TaskInterval, "i", 10, "time in sec to update order statuses")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		log.Fatal("used not declared arguments")
@@ -58,6 +60,9 @@ func NewConfig() Config {
 	}
 	if envConfig.TokenExpSec != 0 {
 		config.TokenExpSec = envConfig.TokenExpSec
+	}
+	if envConfig.TaskInterval != 0 {
+		config.TaskInterval = envConfig.TaskInterval
 	}
 	return config
 }

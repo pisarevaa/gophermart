@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
+	"net/http"
+	"os"
+	"os/signal"
+
 	"github.com/pisarevaa/gophermart/internal/server"
 	"github.com/pisarevaa/gophermart/internal/server/configs"
 	"github.com/pisarevaa/gophermart/internal/server/storage"
+	"github.com/pisarevaa/gophermart/internal/server/tasks"
 )
 
 // @title           Swagger Example API
@@ -23,9 +29,36 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	exit, stop := signal.NotifyContext(ctx, os.Interrupt)
+	defer stop()
+
 	cfg := configs.NewConfig()
 	logger := server.NewLogger()
 	repo := storage.NewDB(cfg.DatabaseUri, logger)
 	r := server.NewRouter(cfg, logger, repo)
-	logger.Fatal(r.Run(cfg.Host))
+	logger.Info("Run Server")
+	srv := &http.Server{
+		Addr:    cfg.Host,
+		Handler: r.Handler(),
+	}
+
+	// Поднимает http сервер
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// Запускаем фоновую задачу по обновлению статусов заказов
+	task := tasks.NewTask(cfg, logger, repo)
+	go task.RunUpdateOrderStatuses(exit)
+
+	if err := srv.Shutdown(exit); err != nil {
+		logger.Fatal("Server Shutdown:", err)
+	}
+
+	<-exit.Done()
+	logger.Info("Server Shutdown!")
 }
