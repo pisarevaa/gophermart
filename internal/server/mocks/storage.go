@@ -35,6 +35,21 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
 
+// BeginTransaction mocks base method.
+func (m *MockStorage) BeginTransaction(ctx context.Context) (*storage.DBTransaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BeginTransaction", ctx)
+	ret0, _ := ret[0].(*storage.DBTransaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BeginTransaction indicates an expected call of BeginTransaction.
+func (mr *MockStorageMockRecorder) BeginTransaction(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTransaction", reflect.TypeOf((*MockStorage)(nil).BeginTransaction), ctx)
+}
+
 // CloseConnection mocks base method.
 func (m *MockStorage) CloseConnection() {
 	m.ctrl.T.Helper()
@@ -146,4 +161,70 @@ func (m *MockStorage) WithdrawUserBalance(ctx context.Context, login string, wit
 func (mr *MockStorageMockRecorder) WithdrawUserBalance(ctx, login, withdraw interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawUserBalance", reflect.TypeOf((*MockStorage)(nil).WithdrawUserBalance), ctx, login, withdraw)
+}
+
+// MockTransaction is a mock of Transaction interface.
+type MockTransaction struct {
+	ctrl     *gomock.Controller
+	recorder *MockTransactionMockRecorder
+}
+
+// MockTransactionMockRecorder is the mock recorder for MockTransaction.
+type MockTransactionMockRecorder struct {
+	mock *MockTransaction
+}
+
+// NewMockTransaction creates a new mock instance.
+func NewMockTransaction(ctrl *gomock.Controller) *MockTransaction {
+	mock := &MockTransaction{ctrl: ctrl}
+	mock.recorder = &MockTransactionMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTransaction) EXPECT() *MockTransactionMockRecorder {
+	return m.recorder
+}
+
+// AccrualUserBalance mocks base method.
+func (m *MockTransaction) AccrualUserBalance(ctx context.Context, accraul int64, login string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AccrualUserBalance", ctx, accraul, login)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AccrualUserBalance indicates an expected call of AccrualUserBalance.
+func (mr *MockTransactionMockRecorder) AccrualUserBalance(ctx, accraul, login interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccrualUserBalance", reflect.TypeOf((*MockTransaction)(nil).AccrualUserBalance), ctx, accraul, login)
+}
+
+// GetOrderToUpdateStatus mocks base method.
+func (m *MockTransaction) GetOrderToUpdateStatus(ctx context.Context) (storage.OrderToUpdate, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrderToUpdateStatus", ctx)
+	ret0, _ := ret[0].(storage.OrderToUpdate)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrderToUpdateStatus indicates an expected call of GetOrderToUpdateStatus.
+func (mr *MockTransactionMockRecorder) GetOrderToUpdateStatus(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderToUpdateStatus", reflect.TypeOf((*MockTransaction)(nil).GetOrderToUpdateStatus), ctx)
+}
+
+// UpdateOrderStatus mocks base method.
+func (m *MockTransaction) UpdateOrderStatus(ctx context.Context, order storage.OrderStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOrderStatus", ctx, order)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOrderStatus indicates an expected call of UpdateOrderStatus.
+func (mr *MockTransactionMockRecorder) UpdateOrderStatus(ctx, order interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrderStatus", reflect.TypeOf((*MockTransaction)(nil).UpdateOrderStatus), ctx, order)
 }

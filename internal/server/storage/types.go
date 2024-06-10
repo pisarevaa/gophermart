@@ -13,7 +13,14 @@ type Storage interface {
 	GetOrder(ctx context.Context, number string) (order Order, err error)
 	GetOrders(ctx context.Context, login string, onlyAccrual bool) (orders []Order, err error)
 	StoreOrder(ctx context.Context, number, login string) (err error)
+	BeginTransaction(ctx context.Context) (tx *DBTransaction, err error)
 	CloseConnection()
+}
+
+type Transaction interface {
+	GetOrderToUpdateStatus(ctx context.Context) (orderToUpdate OrderToUpdate, err error)
+	UpdateOrderStatus(ctx context.Context, order OrderStatus) (err error)
+	AccrualUserBalance(ctx context.Context, accraul int64, login string) (err error)
 }
 
 type RegisterUser struct {
@@ -36,4 +43,15 @@ type Order struct {
 	Login       string    `json:"login"       binding:"required"`
 	UploadedAt  time.Time `json:"uploadedAt"  binding:"required"`
 	ProcessedAt time.Time `json:"processedAt" binding:"required"`
+}
+
+type OrderToUpdate struct {
+	Number string `json:"number" binding:"required"`
+	Login  string `json:"login"  binding:"required"`
+}
+
+type OrderStatus struct {
+	Number  string `json:"number"  binding:"required"`
+	Status  string `json:"status"  binding:"required"`
+	Accrual int64  `json:"accrual" binding:"required"`
 }

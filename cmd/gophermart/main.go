@@ -10,6 +10,7 @@ import (
 	"github.com/pisarevaa/gophermart/internal/server/configs"
 	"github.com/pisarevaa/gophermart/internal/server/storage"
 	"github.com/pisarevaa/gophermart/internal/server/tasks"
+	"github.com/pisarevaa/gophermart/internal/server/utils"
 )
 
 // @title           Swagger Example API
@@ -52,7 +53,8 @@ func main() {
 	}()
 
 	// Запускаем фоновую задачу по обновлению статусов заказов
-	task := tasks.NewTask(cfg, logger, repo)
+	client := utils.NewClient()
+	task := tasks.NewTask(cfg, logger, repo, client)
 	go task.RunUpdateOrderStatuses(exit)
 
 	if err := srv.Shutdown(exit); err != nil {

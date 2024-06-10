@@ -7,12 +7,17 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 type DBStorage struct {
 	*pgxpool.Pool
+}
+
+type DBTransaction struct {
+	pgx.Tx
 }
 
 func NewDB(databaseUri string, logger *zap.SugaredLogger) *DBStorage {
@@ -124,4 +129,47 @@ func (dbpool *DBStorage) StoreOrder(ctx context.Context, number, login string) e
 
 func (dbpool *DBStorage) CloseConnection() {
 	dbpool.Close()
+}
+
+func (dbpool *DBStorage) BeginTransaction(ctx context.Context) (*DBTransaction, error) {
+	tx, err := dbpool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	dbTx := &DBTransaction{tx}
+	return dbTx, nil
+}
+
+func (tx *DBTransaction) GetOrderToUpdateStatus(ctx context.Context) (OrderToUpdate, error) {
+	var order OrderToUpdate
+	err := tx.QueryRow(ctx, "SELECT number, login FROM orders WHERE status = 'NEW' OR status = 'PROCESSING' LIMIT 1 FOR UPDATE SKIP LOCKED").
+		Scan(&order.Number, &order.Login)
+	if err != nil {
+		return order, err
+	}
+	return order, nil
+}
+
+func (tx *DBTransaction) UpdateOrderStatus(ctx context.Context, order OrderStatus) error {
+	loc, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(ctx, `
+			UPDATE orders (status, accrual, processed_at) VALUES ($1, $2, $3) WHERE number = $4
+		`, order.Status, order.Accrual, time.Now().In(loc), order.Number)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (tx *DBTransaction) AccrualUserBalance(ctx context.Context, accraul int64, login string) error {
+	_, err := tx.Exec(ctx, `
+			UPDATE users SET balance = balance + $1 WHERE login = $2
+		`, accraul, login)
+	if err != nil {
+		return err
+	}
+	return nil
 }
