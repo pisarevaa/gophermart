@@ -55,17 +55,17 @@ func (dbpool *DBStorage) StoreUser(ctx context.Context, login string, passwordHa
 
 func (dbpool *DBStorage) WithdrawUserBalance(ctx context.Context, login string, withdraw int64) error {
 	_, err := dbpool.Exec(ctx, `
-			UPDATE users SET balance = balance - $1 WHERE login = $2
-		`, withdraw, login)
+			UPDATE users SET balance = balance - $1, withdrawn = withdrawn + $2 WHERE login = $3
+		`, withdraw, withdraw, login)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (dbpool *DBStorage) AccrualOrderBalance(ctx context.Context, number string, withdraw int64) error {
+func (dbpool *DBStorage) WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) error {
 	_, err := dbpool.Exec(ctx, `
-			UPDATE orders SET accrual = accrual + $1 WHERE number = $2
+			UPDATE orders SET withdrawn = withdrawn + $1 WHERE number = $2
 		`, withdraw, number)
 	if err != nil {
 		return err
@@ -75,8 +75,8 @@ func (dbpool *DBStorage) AccrualOrderBalance(ctx context.Context, number string,
 
 func (dbpool *DBStorage) GetOrder(ctx context.Context, number string) (Order, error) {
 	var order Order
-	err := dbpool.QueryRow(ctx, "SELECT number, status, accrual, login, uploaded_at FROM orders WHERE number = $1", number).
-		Scan(&order.Number, &order.Status, &order.Accrual, &order.Login, &order.UploadedAt)
+	err := dbpool.QueryRow(ctx, "SELECT number, status, accrual, withdrawn, login, uploaded_at, processed_at FROM orders WHERE number = $1", number).
+		Scan(&order.Number, &order.Status, &order.Accrual, &order.Withdrawn, &order.Login, &order.UploadedAt, &order.ProcessedAt)
 	if err != nil {
 		return order, err
 	}
@@ -84,15 +84,14 @@ func (dbpool *DBStorage) GetOrder(ctx context.Context, number string) (Order, er
 }
 
 func (dbpool *DBStorage) GetOrders(ctx context.Context, login string, onlyAccrual bool) ([]Order, error) {
-	sql := "SELECT number, status, accrual, login, uploaded_at FROM orders WHERE login = $1 "
+	sql := "SELECT number, status, accrual, withdrawn, login, uploaded_at, processed_at FROM orders WHERE login = $1 "
 	if onlyAccrual {
-		sql += " AND accrual  >  0" //nolint:ineffassign
+		sql += " AND accrual  >  0"
 	}
+	sql += " ORDER BY uploaded_at ASC"
 	var orders []Order
 	rows, err := dbpool.Query(
-		ctx,
-		"SELECT number, status, accrual, login, uploaded_at FROM orders WHERE login = $1",
-		login,
+		ctx, sql, login,
 	)
 	if err != nil {
 		return []Order{}, err
@@ -100,23 +99,13 @@ func (dbpool *DBStorage) GetOrders(ctx context.Context, login string, onlyAccrua
 	defer rows.Close()
 	for rows.Next() {
 		var o Order
-		err = rows.Scan(&o.Number, &o.Status, &o.Accrual, &o.Login, &o.UploadedAt)
+		err = rows.Scan(&o.Number, &o.Status, &o.Accrual, &o.Withdrawn, &o.Login, &o.UploadedAt, &o.ProcessedAt)
 		if err != nil {
 			return []Order{}, err
 		}
 		orders = append(orders, o)
 	}
 	return orders, nil
-}
-
-func (dbpool *DBStorage) GetUserWithdrawals(ctx context.Context, login string) (int64, error) {
-	var sum int64
-	err := dbpool.QueryRow(ctx, "SELECT SUM(accrual) FROM orders WHERE login = $1", login).
-		Scan(&sum)
-	if err != nil {
-		return sum, err
-	}
-	return sum, nil
 }
 
 func (dbpool *DBStorage) StoreOrder(ctx context.Context, number, login string) error {

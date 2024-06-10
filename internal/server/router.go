@@ -22,26 +22,18 @@ func NewRouter(cfg configs.Config, logger *zap.SugaredLogger, repo storage.Stora
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
-	api := r.Group("/api")
+	api := r.Group("/api/user")
 	{
-		users := api.Group("/user")
-		{
-			users.POST("/register", s.RegisterUser)
-			users.POST("/login", s.LoginUser)
-			authorized := users.Group("/")
-			authorized.Use(utils.JWTAuth(cfg.SecretKey))
-			{
-				authorized.POST("/orders", s.AddOrder)
-				authorized.GET("/orders", s.GetOrders)
-				authorized.GET("/balance", s.GetBalance)
-				authorized.POST("/balance/withdraw", s.WithdrawBalance)
-				authorized.GET("/withdrawals", s.Withdrawls)
-			}
-		}
+		api.POST("/register", s.RegisterUser)
+		api.POST("/login", s.LoginUser)
 		authorized := api.Group("/")
 		authorized.Use(utils.JWTAuth(cfg.SecretKey))
 		{
-			authorized.POST("/orders/:number", s.GetOrder)
+			authorized.POST("/orders", s.AddOrder)
+			authorized.GET("/orders", s.GetOrders)
+			authorized.GET("/balance", s.GetBalance)
+			authorized.POST("/balance/withdraw", s.WithdrawBalance)
+			authorized.GET("/withdrawals", s.Withdrawls)
 		}
 	}
 

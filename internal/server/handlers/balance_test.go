@@ -20,18 +20,15 @@ func (suite *ServerTestSuite) TestGetBalance() {
 	m := mock.NewMockStorage(ctrl)
 
 	user := storage.User{
-		Login:    "test",
-		Password: "123",
-		Balance:  int64(500),
+		Login:     "test",
+		Password:  "123",
+		Balance:   int64(500),
+		Withdrawn: int64(300),
 	}
 
 	m.EXPECT().
 		GetUser(gomock.Any(), gomock.Any()).
 		Return(user, nil)
-
-	m.EXPECT().
-		GetUserWithdrawals(gomock.Any(), gomock.Any()).
-		Return(int64(300), nil)
 
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
 	defer ts.Close()
@@ -88,7 +85,7 @@ func (suite *ServerTestSuite) TestWithdrawBalance() {
 		Return(nil)
 
 	m.EXPECT().
-		AccrualOrderBalance(gomock.Any(), gomock.Any(), gomock.Any()).
+		WithdrawOrderBalance(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))

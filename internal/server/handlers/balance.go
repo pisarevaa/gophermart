@@ -30,14 +30,9 @@ func (s *Service) GetBalance(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user is not found"})
 		return
 	}
-	sum, err := s.Repo.GetUserWithdrawals(c, login)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
 	c.JSON(http.StatusOK, UserBalanceInfo{
 		Current:   user.Balance,
-		Withdrawn: sum,
+		Withdrawn: user.Withdrawn,
 	})
 }
 
@@ -77,7 +72,7 @@ func (s *Service) WithdrawBalance(c *gin.Context) {
 		return
 	}
 
-	err = s.Repo.AccrualOrderBalance(c, withdraw.Order, withdraw.Sum)
+	err = s.Repo.WithdrawOrderBalance(c, withdraw.Order, withdraw.Sum)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -107,8 +102,8 @@ func (s *Service) Withdrawls(c *gin.Context) {
 			withdrawalsResponse,
 			WithdrawalsReponse{
 				Order:       order.Number,
-				Sum:         order.Accrual,
-				ProcessedAt: order.UploadedAt,
+				Sum:         order.Withdrawn,
+				ProcessedAt: order.ProcessedAt,
 			},
 		)
 	}

@@ -35,20 +35,6 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
 
-// AccrualOrderBalance mocks base method.
-func (m *MockStorage) AccrualOrderBalance(ctx context.Context, number string, withdraw int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AccrualOrderBalance", ctx, number, withdraw)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AccrualOrderBalance indicates an expected call of AccrualOrderBalance.
-func (mr *MockStorageMockRecorder) AccrualOrderBalance(ctx, number, withdraw interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccrualOrderBalance", reflect.TypeOf((*MockStorage)(nil).AccrualOrderBalance), ctx, number, withdraw)
-}
-
 // CloseConnection mocks base method.
 func (m *MockStorage) CloseConnection() {
 	m.ctrl.T.Helper()
@@ -106,21 +92,6 @@ func (mr *MockStorageMockRecorder) GetUser(ctx, login interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockStorage)(nil).GetUser), ctx, login)
 }
 
-// GetUserWithdrawals mocks base method.
-func (m *MockStorage) GetUserWithdrawals(ctx context.Context, login string) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserWithdrawals", ctx, login)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserWithdrawals indicates an expected call of GetUserWithdrawals.
-func (mr *MockStorageMockRecorder) GetUserWithdrawals(ctx, login interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserWithdrawals", reflect.TypeOf((*MockStorage)(nil).GetUserWithdrawals), ctx, login)
-}
-
 // StoreOrder mocks base method.
 func (m *MockStorage) StoreOrder(ctx context.Context, number, login string) error {
 	m.ctrl.T.Helper()
@@ -147,6 +118,20 @@ func (m *MockStorage) StoreUser(ctx context.Context, login, passwordHash string)
 func (mr *MockStorageMockRecorder) StoreUser(ctx, login, passwordHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreUser", reflect.TypeOf((*MockStorage)(nil).StoreUser), ctx, login, passwordHash)
+}
+
+// WithdrawOrderBalance mocks base method.
+func (m *MockStorage) WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithdrawOrderBalance", ctx, number, withdraw)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithdrawOrderBalance indicates an expected call of WithdrawOrderBalance.
+func (mr *MockStorageMockRecorder) WithdrawOrderBalance(ctx, number, withdraw interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawOrderBalance", reflect.TypeOf((*MockStorage)(nil).WithdrawOrderBalance), ctx, number, withdraw)
 }
 
 // WithdrawUserBalance mocks base method.
