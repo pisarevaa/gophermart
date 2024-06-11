@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/fvbock/endless"
 
 	"github.com/pisarevaa/gophermart/internal/server"
 	"github.com/pisarevaa/gophermart/internal/server/configs"
@@ -39,27 +40,14 @@ func main() {
 	logger := server.NewLogger()
 	repo := storage.NewDB(cfg.DatabaseUri, logger)
 	r := server.NewRouter(cfg, logger, repo)
-	logger.Info("Run Server")
-	srv := &http.Server{
-		Addr:    cfg.Host,
-		Handler: r.Handler(),
-	}
-
-	// Поднимает http сервер
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatalf("listen: %s\n", err)
-		}
-	}()
 
 	// Запускаем фоновую задачу по обновлению статусов заказов
 	client := utils.NewClient()
 	task := tasks.NewTask(cfg, logger, repo, client)
 	go task.RunUpdateOrderStatuses(exit)
 
-	if err := srv.Shutdown(exit); err != nil {
-		logger.Fatal("Server Shutdown:", err)
-	}
+	logger.Info("Run Server")
+	logger.Fatal(endless.ListenAndServe(cfg.Host, r))
 
 	<-exit.Done()
 	logger.Info("Server Shutdown!")

@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+
 	docs "github.com/pisarevaa/gophermart/docs"
 	"github.com/pisarevaa/gophermart/internal/server/configs"
 	"github.com/pisarevaa/gophermart/internal/server/handlers"
