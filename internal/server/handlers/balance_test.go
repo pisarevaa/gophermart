@@ -50,7 +50,7 @@ func (suite *ServerTestSuite) TestGetBalance() {
 	suite.Require().Equal(int64(500), userBalanceResponse.Current)
 }
 
-// Пока не понимаю как замокать DBTransaction
+// Пока не понимаю как замокать DBTransaction, вернусь позже
 // func (suite *ServerTestSuite) TestWithdrawBalance() {
 // 	ctrl := gomock.NewController(suite.T())
 // 	defer ctrl.Finish()
