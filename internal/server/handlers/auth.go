@@ -51,6 +51,15 @@ func (s *Service) RegisterUser(c *gin.Context) {
 		return
 	}
 
+	token, err := utils.GenerateJWTString(s.Config.TokenExpSec, s.Config.SecretKey, user.Login)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Authorization", token)
+	c.SetCookie("token", token, int(s.Config.TokenExpSec), "/", "localhost", false, true)
+
 	c.JSON(http.StatusOK, storage.Success{
 		Success: true,
 	})
@@ -97,6 +106,9 @@ func (s *Service) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	c.Header("Authorization", token)
+	c.SetCookie("token", token, int(s.Config.TokenExpSec), "/", "localhost", false, true)
 
 	c.JSON(http.StatusOK, SuccessLogin{
 		Success: true,
