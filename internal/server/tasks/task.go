@@ -96,7 +96,8 @@ func (s *Task) UpdateOrderStatuses(ctx context.Context) error {
 
 func (s *Task) GetOrderStatus(number string) (storage.OrderStatus, error) {
 	var orderStatus storage.OrderStatus
-	requestURL := fmt.Sprintf("http://%v/api/orders/%v", s.Config.AccrualSystemAddress, number)
+	// requestURL := fmt.Sprintf("http://%v/api/orders/%v", s.Config.AccrualSystemAddress, number)
+	requestURL := fmt.Sprintf("%v/api/orders/%v", s.Config.AccrualSystemAddress, number)
 	resp, err := s.Client.R().SetResult(&orderStatus).SetHeader("Content-Type", "application/json").Get(requestURL)
 	if err != nil {
 		s.Logger.Info("Request to ", requestURL, " with Error: ", err)
