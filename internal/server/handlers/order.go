@@ -3,17 +3,17 @@ package handlers
 import (
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/gin-gonic/gin"
+	"github.com/pisarevaa/gophermart/internal/server/utils"
 )
 
 type OrderReponse struct {
-	Number     string    `json:"number"     binding:"required"`
-	Status     string    `json:"status"     binding:"required"`
-	Accrual    int64     `json:"accrual"    binding:"required"`
-	UploadedAt time.Time `json:"uploadedAt" binding:"required"`
+	Number     string                  `json:"number"     binding:"required"`
+	Status     string                  `json:"status"     binding:"required"`
+	Accrual    int64                   `json:"accrual"    binding:"required"`
+	UploadedAt utils.FormattedDatetime `json:"uploadedAt" binding:"required"`
 }
 
 func (s *Service) AddOrder(c *gin.Context) {
@@ -79,7 +79,7 @@ func (s *Service) GetOrders(c *gin.Context) {
 				Number:     order.Number,
 				Status:     order.Status,
 				Accrual:    order.Accrual,
-				UploadedAt: order.UploadedAt,
+				UploadedAt: utils.FormattedDatetime(order.UploadedAt),
 			},
 		)
 	}

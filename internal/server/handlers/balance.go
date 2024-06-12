@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pisarevaa/gophermart/internal/server/utils"
 )
 
 type Withdraw struct {
@@ -13,9 +13,9 @@ type Withdraw struct {
 }
 
 type WithdrawalsReponse struct {
-	Order       string    `json:"order"        binding:"required"`
-	Sum         int64     `json:"sum"          binding:"required"`
-	ProcessedAt time.Time `json:"processed_at" binding:"required"`
+	Order       string                  `json:"order"        binding:"required"`
+	Sum         int64                   `json:"sum"          binding:"required"`
+	ProcessedAt utils.FormattedDatetime `json:"processed_at" binding:"required"`
 }
 
 type UserBalanceInfo struct {
@@ -116,7 +116,7 @@ func (s *Service) Withdrawls(c *gin.Context) {
 			WithdrawalsReponse{
 				Order:       order.Number,
 				Sum:         order.Withdrawn,
-				ProcessedAt: order.ProcessedAt,
+				ProcessedAt: utils.FormattedDatetime(order.ProcessedAt),
 			},
 		)
 	}

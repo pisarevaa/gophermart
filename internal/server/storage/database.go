@@ -95,7 +95,7 @@ func (dbpool *DBStorage) GetOrders(ctx context.Context, login string, onlyWithdr
 
 func (dbpool *DBStorage) GetOrdersCountToUpdate(ctx context.Context) (int64, error) {
 	var count int64
-	err := dbpool.QueryRow(ctx, "SELECT COUNT(*) AS count FROM orders WHERE status = 'NEW' OR status = 'PROCESSING'").
+	err := dbpool.QueryRow(ctx, "SELECT COUNT(*) AS count FROM orders WHERE status = 'NEW' OR status = 'PROCESSING' OR status = 'REGISTERED'").
 		Scan(&count)
 	if err != nil {
 		return count, err
@@ -132,7 +132,7 @@ func (dbpool *DBStorage) BeginTransaction(ctx context.Context) (*DBTransaction, 
 
 func (tx *DBTransaction) GetOrderToUpdateStatus(ctx context.Context) (OrderToUpdate, error) {
 	var order OrderToUpdate
-	err := tx.QueryRow(ctx, "SELECT number, login FROM orders WHERE status = 'NEW' OR status = 'PROCESSING' LIMIT 1 FOR UPDATE SKIP LOCKED").
+	err := tx.QueryRow(ctx, "SELECT number, login FROM orders WHERE status = 'NEW' OR status = 'PROCESSING' OR status = 'REGISTERED' LIMIT 1 FOR UPDATE SKIP LOCKED").
 		Scan(&order.Number, &order.Login)
 	if err != nil {
 		return order, err
