@@ -1,33 +1,346 @@
-externalDocs:
-  description: OpenAPI
-  url: https://swagger.io/resources/open-api/
+definitions:
+  handlers.OrderReponse:
+    properties:
+      accrual:
+        type: integer
+      number:
+        type: string
+      status:
+        type: string
+      uploadedAt:
+        example: "2024-06-12T08:00:04+03:00"
+        type: string
+    required:
+    - accrual
+    - number
+    - status
+    - uploadedAt
+    type: object
+  handlers.SuccessLogin:
+    properties:
+      success:
+        type: boolean
+      token:
+        type: string
+    required:
+    - success
+    - token
+    type: object
+  handlers.UserBalanceInfo:
+    properties:
+      current:
+        type: integer
+      withdrawn:
+        type: integer
+    required:
+    - current
+    - withdrawn
+    type: object
+  handlers.Withdraw:
+    properties:
+      order:
+        type: string
+      sum:
+        type: integer
+    required:
+    - order
+    - sum
+    type: object
+  handlers.WithdrawalsReponse:
+    properties:
+      order:
+        type: string
+      processed_at:
+        example: "2024-06-12T08:00:04+03:00"
+        type: string
+      sum:
+        type: integer
+    required:
+    - order
+    - processed_at
+    - sum
+    type: object
+  storage.Error:
+    properties:
+      error:
+        type: string
+    required:
+    - error
+    type: object
+  storage.RegisterUser:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  storage.Success:
+    properties:
+      success:
+        type: boolean
+    required:
+    - success
+    type: object
 host: localhost:8080
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: This is a sample server celler server.
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
-  version: "2.0"
+  contact: {}
+  title: Swagger Gophermart Service API
+  version: "1.0"
 paths:
-  /example/helloworld:
+  /api/user/balance:
     get:
-      consumes:
-      - application/json
-      description: do ping
+      parameters:
+      - description: Bearer
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Response
           schema:
-            type: string
-      summary: ping example
+            $ref: '#/definitions/handlers.UserBalanceInfo'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "500":
+          description: Error
+          schema:
+            $ref: '#/definitions/storage.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user's balance
       tags:
-      - example
+      - Balance
+  /api/user/balance/withdraw:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Withdraw'
+      - description: Bearer
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response
+          schema:
+            $ref: '#/definitions/storage.Success'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "402":
+          description: not enough balance
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "500":
+          description: Error
+          schema:
+            $ref: '#/definitions/storage.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Withdraw user's balance
+      tags:
+      - Balance
+  /api/user/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/storage.RegisterUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response
+          schema:
+            $ref: '#/definitions/handlers.SuccessLogin'
+        "400":
+          description: Incorrect request data
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "401":
+          description: Login is not found or password is wrong
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "500":
+          description: Error
+          schema:
+            $ref: '#/definitions/storage.Error'
+      summary: Login user
+      tags:
+      - Auth
+  /api/user/orders:
+    get:
+      parameters:
+      - description: Bearer
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response
+          schema:
+            $ref: '#/definitions/handlers.OrderReponse'
+        "204":
+          description: No orders
+          schema:
+            $ref: '#/definitions/storage.Success'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "500":
+          description: Error
+          schema:
+            $ref: '#/definitions/storage.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user's orders
+      tags:
+      - Orders
+    post:
+      consumes:
+      - text/plain
+      parameters:
+      - description: Body
+        in: body
+        name: request
+        required: true
+        schema:
+          type: string
+      - description: Bearer
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order is already added
+          schema:
+            $ref: '#/definitions/storage.Success'
+        "202":
+          description: Response
+          schema:
+            $ref: '#/definitions/storage.Success'
+        "400":
+          description: Error or incorrect data
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "409":
+          description: Order number is already added by other user
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "422":
+          description: incorrect order number
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "500":
+          description: Error
+          schema:
+            $ref: '#/definitions/storage.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Add an order
+      tags:
+      - Orders
+  /api/user/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/storage.RegisterUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response
+          schema:
+            $ref: '#/definitions/storage.Success'
+        "409":
+          description: Login is already used
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "500":
+          description: Error
+          schema:
+            $ref: '#/definitions/storage.Error'
+      summary: Regiser user
+      tags:
+      - Auth
+  /api/user/withdrawals:
+    get:
+      parameters:
+      - description: Bearer
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response
+          schema:
+            items:
+              $ref: '#/definitions/handlers.WithdrawalsReponse'
+            type: array
+        "204":
+          description: No orders
+          schema:
+            items:
+              $ref: '#/definitions/handlers.WithdrawalsReponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/storage.Error'
+        "500":
+          description: Error
+          schema:
+            $ref: '#/definitions/storage.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user's withdrawls
+      tags:
+      - Balance
 swagger: "2.0"

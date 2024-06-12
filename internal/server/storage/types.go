@@ -27,6 +27,14 @@ type Transaction interface {
 	Commit(ctx context.Context) (err error)
 }
 
+type Success struct {
+	Success bool `json:"success" binding:"required"`
+}
+
+type Error struct {
+	Error string `json:"error" binding:"required"`
+}
+
 type RegisterUser struct {
 	Login    string `json:"login"    binding:"required"`
 	Password string `json:"password" binding:"required"`

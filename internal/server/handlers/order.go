@@ -6,6 +6,7 @@ import (
 
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/gin-gonic/gin"
+	"github.com/pisarevaa/gophermart/internal/server/storage"
 	"github.com/pisarevaa/gophermart/internal/server/utils"
 )
 
@@ -13,9 +14,27 @@ type OrderReponse struct {
 	Number     string                  `json:"number"     binding:"required"`
 	Status     string                  `json:"status"     binding:"required"`
 	Accrual    int64                   `json:"accrual"    binding:"required"`
-	UploadedAt utils.FormattedDatetime `json:"uploadedAt" binding:"required"`
+	UploadedAt utils.FormattedDatetime `json:"uploadedAt" binding:"required" swaggertype:"string" example:"2024-06-12T08:00:04+03:00"`
 }
 
+// AddOrder godoc
+//
+//	@Summary	Add an order
+//	@Schemes
+//	@Tags		Orders
+//	@Accept		plain
+//	@Produce	json
+//	@Param		request			body	string	true	"Body"
+//	@Param		Authorization	header	string	true	"Bearer"
+//	@Security	ApiKeyAuth
+//	@Success	202	{object}	storage.Success	"Response"
+//	@Success	200	{object}	storage.Success	"Order is already added"
+//	@Failure	401	{object}	storage.Error	"Unauthorized"
+//	@Failure	400	{object}	storage.Error	"Error or incorrect data"
+//	@Failure	422	{object}	storage.Error	"incorrect order number"
+//	@Failure	409	{object}	storage.Error	"Order number is already added by other user"
+//	@Failure	500	{object}	storage.Error	"Error"
+//	@Router		/api/user/orders [post]
 func (s *Service) AddOrder(c *gin.Context) {
 	login := c.GetString("Login")
 	body, err := io.ReadAll(c.Request.Body)
@@ -37,8 +56,8 @@ func (s *Service) AddOrder(c *gin.Context) {
 	order, err := s.Repo.GetOrder(c, number)
 	if err == nil {
 		if login == order.Login {
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
+			c.JSON(http.StatusOK, storage.Success{
+				Success: true,
 			})
 			return
 		} else {
@@ -53,11 +72,24 @@ func (s *Service) AddOrder(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, gin.H{
-		"success": true,
+	c.JSON(http.StatusAccepted, storage.Success{
+		Success: true,
 	})
 }
 
+// GetOrders godoc
+//
+//	@Summary	Get user's orders
+//	@Schemes
+//	@Tags		Orders
+//	@Produce	json
+//	@Param		Authorization	header	string	true	"Bearer"
+//	@Security	ApiKeyAuth
+//	@Success	200	{object}	OrderReponse	"Response"
+//	@Success	204	{object}	storage.Success	"No orders"
+//	@Failure	401	{object}	storage.Error	"Unauthorized"
+//	@Failure	500	{object}	storage.Error	"Error"
+//	@Router		/api/user/orders [get]
 func (s *Service) GetOrders(c *gin.Context) {
 	login := c.GetString("Login")
 

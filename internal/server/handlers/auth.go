@@ -9,16 +9,23 @@ import (
 	"github.com/pisarevaa/gophermart/internal/server/utils"
 )
 
-// PingExample godoc
+type SuccessLogin struct {
+	Success bool   `json:"success" binding:"required"`
+	Token   string `json:"token"   binding:"required"`
+}
+
+// RegisterUser godoc
 //
-//	@Summary	ping example
+//	@Summary	Regiser user
 //	@Schemes
-//	@Description	do ping
-//	@Tags			example
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{string}	Helloworld
-//	@Router			/example/helloworld [get]
+//	@Tags		Auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		request	body		storage.RegisterUser	true	"Body"
+//	@Success	200		{object}	storage.Success			"Response"
+//	@Failure	409		{object}	storage.Error			"Login is already used"
+//	@Failure	500		{object}	storage.Error			"Error"
+//	@Router		/api/user/register [post]
 func (s *Service) RegisterUser(c *gin.Context) {
 	var user storage.RegisterUser
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -44,11 +51,24 @@ func (s *Service) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
+	c.JSON(http.StatusOK, storage.Success{
+		Success: true,
 	})
 }
 
+// LoginUser godoc
+//
+//	@Summary	Login user
+//	@Schemes
+//	@Tags		Auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		request	body		storage.RegisterUser	true	"Body"
+//	@Success	200		{object}	SuccessLogin			"Response"
+//	@Failure	401		{object}	storage.Error			"Login is not found or password is wrong"
+//	@Failure	400		{object}	storage.Error			"Incorrect request data"
+//	@Failure	500		{object}	storage.Error			"Error"
+//	@Router		/api/user/login [post]
 func (s *Service) LoginUser(c *gin.Context) {
 	var user storage.RegisterUser
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -74,12 +94,12 @@ func (s *Service) LoginUser(c *gin.Context) {
 
 	token, err := utils.GenerateJWTString(s.Config.TokenExpSec, s.Config.SecretKey, userInDb.Login)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"token":   token,
+	c.JSON(http.StatusOK, SuccessLogin{
+		Success: true,
+		Token:   token,
 	})
 }

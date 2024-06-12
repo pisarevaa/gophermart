@@ -15,7 +15,7 @@ type Withdraw struct {
 type WithdrawalsReponse struct {
 	Order       string                  `json:"order"        binding:"required"`
 	Sum         int64                   `json:"sum"          binding:"required"`
-	ProcessedAt utils.FormattedDatetime `json:"processed_at" binding:"required"`
+	ProcessedAt utils.FormattedDatetime `json:"processed_at" binding:"required" swaggertype:"string" example:"2024-06-12T08:00:04+03:00"`
 }
 
 type UserBalanceInfo struct {
@@ -23,6 +23,18 @@ type UserBalanceInfo struct {
 	Withdrawn int64 `json:"withdrawn" binding:"required"`
 }
 
+// GetBalance godoc
+//
+//	@Summary	Get user's balance
+//	@Schemes
+//	@Tags		Balance
+//	@Produce	json
+//	@Param		Authorization	header	string	true	"Bearer"
+//	@Security	ApiKeyAuth
+//	@Success	200	{object}	UserBalanceInfo	"Response"
+//	@Failure	401	{object}	storage.Error	"Unauthorized"
+//	@Failure	500	{object}	storage.Error	"Error"
+//	@Router		/api/user/balance [get]
 func (s *Service) GetBalance(c *gin.Context) {
 	login := c.GetString("Login")
 	user, err := s.Repo.GetUser(c, login)
@@ -36,6 +48,22 @@ func (s *Service) GetBalance(c *gin.Context) {
 	})
 }
 
+// WithdrawUserBalance godoc
+//
+//	@Summary	Withdraw user's balance
+//	@Schemes
+//	@Tags		Balance
+//	@Accept		json
+//	@Produce	json
+//	@Param		request			body	Withdraw	true	"Body"
+//	@Param		Authorization	header	string		true	"Bearer"
+//	@Security	ApiKeyAuth
+//	@Success	200	{object}	storage.Success	"Response"
+//	@Failure	401	{object}	storage.Error	"Unauthorized"
+//	@Failure	402	{object}	storage.Error	"not enough balance"
+//	@Failure	422	{object}	storage.Error	"Unprocessable Entity"
+//	@Failure	500	{object}	storage.Error	"Error"
+//	@Router		/api/user/balance/withdraw [post]
 func (s *Service) WithdrawBalance(c *gin.Context) {
 	login := c.GetString("Login")
 	var withdraw Withdraw
@@ -96,6 +124,19 @@ func (s *Service) WithdrawBalance(c *gin.Context) {
 	})
 }
 
+// GetWithdrawls godoc
+//
+//	@Summary	Get user's withdrawls
+//	@Schemes
+//	@Tags		Balance
+//	@Produce	json
+//	@Param		Authorization	header	string	true	"Bearer"
+//	@Security	ApiKeyAuth
+//	@Success	200	{object}	[]WithdrawalsReponse	"Response"
+//	@Success	204	{object}	[]WithdrawalsReponse	"No orders"
+//	@Failure	401	{object}	storage.Error			"Unauthorized"
+//	@Failure	500	{object}	storage.Error			"Error"
+//	@Router		/api/user/withdrawals [get]
 func (s *Service) Withdrawls(c *gin.Context) {
 	login := c.GetString("Login")
 

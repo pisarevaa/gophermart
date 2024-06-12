@@ -22,15 +22,6 @@ import (
 	"github.com/pisarevaa/gophermart/internal/server/tasks"
 )
 
-type Success struct {
-	Success bool `json:"success" binding:"required"`
-}
-
-type SuccessLogin struct {
-	Success bool   `json:"success" binding:"required"`
-	Token   string `json:"token"   binding:"required"`
-}
-
 type OrderReponse struct {
 	Number     string    `json:"number"     binding:"required"`
 	Status     string    `json:"status"     binding:"required"`
@@ -83,7 +74,7 @@ func (suite *ServerTestSuite) TestFullProccess() {
 		Login:    randomLogin,
 		Password: password,
 	}
-	var successRegister Success
+	var successRegister storage.Success
 	resp, err := suite.client.R().
 		SetResult(&successRegister).
 		SetBody(user).
@@ -94,7 +85,7 @@ func (suite *ServerTestSuite) TestFullProccess() {
 	suite.Require().True(successRegister.Success)
 
 	// Логин пользователя
-	var successLogin SuccessLogin
+	var successLogin handlers.SuccessLogin
 	resp, err = suite.client.R().
 		SetResult(&successLogin).
 		SetBody(user).
@@ -107,7 +98,7 @@ func (suite *ServerTestSuite) TestFullProccess() {
 	// Загрузка заказа
 	number := goluhn.Generate(9)
 	suite.logger.Info("randomOrder: ", number)
-	var successAddOrder Success
+	var successAddOrder storage.Success
 	resp, err = suite.client.R().
 		SetResult(&successAddOrder).
 		SetBody(number).
@@ -150,7 +141,7 @@ func (suite *ServerTestSuite) TestFullProccess() {
 		Order: number,
 		Sum:   sumToWidraw,
 	}
-	var successWithdraw Success
+	var successWithdraw storage.Success
 	resp, err = suite.client.R().
 		SetResult(&successWithdraw).
 		SetBody(withdrawOrder).
