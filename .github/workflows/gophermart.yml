@@ -60,5 +60,5 @@ jobs:
             -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable" \
             -accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
             -accrual-host=localhost \
-            -accrual-port=8085 \
+            -accrual-port=$(random unused-port) \
             -accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
