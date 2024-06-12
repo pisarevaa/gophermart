@@ -39,16 +39,19 @@ func (s *Service) AddOrder(c *gin.Context) {
 	login := c.GetString("Login")
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
+		s.Logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	number := string(body)
 	if number == "" {
+		s.Logger.Error("order number is empty string")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "order number is empty string"})
 		return
 	}
 	err = goluhn.Validate(number)
 	if err != nil {
+		s.Logger.Error(err.Error())
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
@@ -60,6 +63,7 @@ func (s *Service) AddOrder(c *gin.Context) {
 				Success: true,
 			})
 		} else {
+			s.Logger.Error("order number is already added by other user")
 			c.JSON(http.StatusConflict, gin.H{"error": "order number is already added by other user"})
 		}
 		return
@@ -67,6 +71,7 @@ func (s *Service) AddOrder(c *gin.Context) {
 
 	err = s.Repo.StoreOrder(c, number, login)
 	if err != nil {
+		s.Logger.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
