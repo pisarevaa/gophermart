@@ -37,6 +37,6 @@ func main() {
 	logger.Info("Run Server")
 	logger.Fatal(endless.ListenAndServe(cfg.Host, r))
 
-	<-exit.Done()
-	logger.Info("Server Shutdown!")
+	// <-exit.Done()
+	// logger.Info("Server Shutdown!")
 }
