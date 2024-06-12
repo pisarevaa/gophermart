@@ -92,6 +92,21 @@ func (mr *MockStorageMockRecorder) GetOrders(ctx, login, onlyWithdrawn interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrders", reflect.TypeOf((*MockStorage)(nil).GetOrders), ctx, login, onlyWithdrawn)
 }
 
+// GetOrdersCountToUpdate mocks base method.
+func (m *MockStorage) GetOrdersCountToUpdate(ctx context.Context) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrdersCountToUpdate", ctx)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrdersCountToUpdate indicates an expected call of GetOrdersCountToUpdate.
+func (mr *MockStorageMockRecorder) GetOrdersCountToUpdate(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrdersCountToUpdate", reflect.TypeOf((*MockStorage)(nil).GetOrdersCountToUpdate), ctx)
+}
+
 // GetUser mocks base method.
 func (m *MockStorage) GetUser(ctx context.Context, login string) (storage.User, error) {
 	m.ctrl.T.Helper()

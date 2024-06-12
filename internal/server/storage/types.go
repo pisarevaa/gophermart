@@ -10,6 +10,7 @@ type Storage interface {
 	StoreUser(ctx context.Context, login string, passwordHash string) (err error)
 	GetOrder(ctx context.Context, number string) (order Order, err error)
 	GetOrders(ctx context.Context, login string, onlyWithdrawn bool) (orders []Order, err error)
+	GetOrdersCountToUpdate(ctx context.Context) (count int64, err error)
 	StoreOrder(ctx context.Context, number, login string) (err error)
 	BeginTransaction(ctx context.Context) (tx *DBTransaction, err error)
 	CloseConnection()

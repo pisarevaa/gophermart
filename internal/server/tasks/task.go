@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -53,39 +52,53 @@ func (s *Task) RunUpdateOrderStatuses(ctx context.Context) {
 
 func (s *Task) UpdateOrderStatuses(ctx context.Context) error {
 	s.Logger.Info("UpdateOrderStatuses....")
+
+	count, err := s.Repo.GetOrdersCountToUpdate(ctx)
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		s.Logger.Info("Not active orders to proccess")
+		return nil
+	}
+	s.Logger.Info(1)
 	tx, err := s.Repo.BeginTransaction(ctx)
 	if err != nil {
 		return err
 	}
+	s.Logger.Info(2)
 	defer tx.Rollback(ctx) //nolint:errcheck // ignore check
 	orderToUpdate, err := tx.GetOrderToUpdateStatus(ctx)
 	if err != nil {
 		return err
 	}
-
+	s.Logger.Info(3)
 	status, err := s.GetOrderStatus(orderToUpdate.Number)
 	if err != nil {
 		return err
 	}
-
+	s.Logger.Info(4)
 	if status.Status == "NEW" || status.Status == "PROCESSING" {
-		return errors.New("order is not ready")
+		s.Logger.Info("order is not ready")
+		return nil
 	}
-
+	s.Logger.Info(5)
 	err = tx.UpdateOrderStatus(ctx, status)
 	if err != nil {
 		return err
 	}
 
+	s.Logger.Info(6)
 	err = tx.AccrualUserBalance(ctx, status.Accrual, orderToUpdate.Login)
 	if err != nil {
 		return err
 	}
-
+	s.Logger.Info(7)
 	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}
+	s.Logger.Info("order is updated successfully ", orderToUpdate.Number)
 	return nil
 }
 

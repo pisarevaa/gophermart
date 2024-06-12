@@ -93,6 +93,16 @@ func (dbpool *DBStorage) GetOrders(ctx context.Context, login string, onlyWithdr
 	return orders, nil
 }
 
+func (dbpool *DBStorage) GetOrdersCountToUpdate(ctx context.Context) (int64, error) {
+	var count int64
+	err := dbpool.QueryRow(ctx, "SELECT COUNT(*) AS count FROM orders WHERE status = 'NEW' OR status = 'PROCESSING'").
+		Scan(&count)
+	if err != nil {
+		return count, err
+	}
+	return count, nil
+}
+
 func (dbpool *DBStorage) StoreOrder(ctx context.Context, number, login string) error {
 	loc, err := time.LoadLocation("Europe/Moscow")
 	if err != nil {
@@ -136,7 +146,7 @@ func (tx *DBTransaction) UpdateOrderStatus(ctx context.Context, order OrderStatu
 		return err
 	}
 	_, err = tx.Exec(ctx, `
-			UPDATE orders (status, accrual, processed_at) VALUES ($1, $2, $3) WHERE number = $4
+			UPDATE orders SET status = $1, accrual = $2, processed_at = $3 WHERE number = $4
 		`, order.Status, order.Accrual, time.Now().In(loc), order.Number)
 	if err != nil {
 		return err
