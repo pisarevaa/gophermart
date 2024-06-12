@@ -1,11 +1,7 @@
 package handlers_test
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
 	"net/http/httptest"
 	"time"
 
@@ -13,35 +9,15 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/pisarevaa/gophermart/internal/server"
-	"github.com/pisarevaa/gophermart/internal/server/handlers"
 	mock "github.com/pisarevaa/gophermart/internal/server/mocks"
 	"github.com/pisarevaa/gophermart/internal/server/storage"
 )
 
-func MakeAuthRequest(
-	suite *ServerTestSuite,
-	ts *httptest.Server,
-	method string,
-	url string,
-	body []byte,
-	isJson bool,
-	token string,
-) (*http.Response, string) {
-	req, err := http.NewRequest(method, ts.URL+url, bytes.NewBuffer(body))
-	suite.Require().NoError(err)
-	if isJson {
-		req.Header.Set("Content-Type", "application/json")
-	} else {
-		req.Header.Set("Content-Type", "text/plain")
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Accept-Encoding", "")
-	resp, err := ts.Client().Do(req)
-	suite.Require().NoError(err)
-	defer resp.Body.Close()
-	respBody, err := io.ReadAll(resp.Body)
-	suite.Require().NoError(err)
-	return resp, string(respBody)
+type OrderReponse struct {
+	Number     string    `json:"number"     binding:"required"`
+	Status     string    `json:"status"     binding:"required"`
+	Accrual    int64     `json:"accrual"    binding:"required"`
+	UploadedAt time.Time `json:"uploadedAt" binding:"required"`
 }
 
 func (suite *ServerTestSuite) TestAddOrder() {
@@ -63,10 +39,13 @@ func (suite *ServerTestSuite) TestAddOrder() {
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
 	defer ts.Close()
 
-	resp, _ := MakeAuthRequest(suite, ts, "POST", "/api/user/orders", []byte(number), false, suite.token)
-
-	defer resp.Body.Close()
-	suite.Require().Equal(202, resp.StatusCode)
+	resp, err := suite.client.R().
+		SetBody(number).
+		SetHeader("Content-Type", "text/plain").
+		SetHeader("Authorization", "Bearer "+suite.token).
+		Post(ts.URL + "/api/user/orders")
+	suite.Require().NoError(err)
+	suite.Require().Equal(202, resp.StatusCode())
 }
 
 func (suite *ServerTestSuite) TestGetOrders() {
@@ -92,13 +71,13 @@ func (suite *ServerTestSuite) TestGetOrders() {
 	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
 	defer ts.Close()
 
-	resp, bodyResp := MakeAuthRequest(suite, ts, "GET", "/api/user/orders", nil, true, suite.token)
-
-	var ordersResponse []handlers.OrderReponse
-
-	err := json.Unmarshal([]byte(bodyResp), &ordersResponse)
+	var ordersResponse []OrderReponse
+	resp, err := suite.client.R().
+		SetResult(&ordersResponse).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Authorization", "Bearer "+suite.token).
+		Get(ts.URL + "/api/user/orders")
 	suite.Require().NoError(err)
-
-	defer resp.Body.Close()
-	suite.Require().Equal(200, resp.StatusCode)
+	suite.Require().Equal(200, resp.StatusCode())
+	suite.Require().Len(orders, 1)
 }

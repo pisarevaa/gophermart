@@ -1,19 +1,14 @@
 package handlers_test
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"go.uber.org/zap"
-
-	"github.com/stretchr/testify/suite"
-
+	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 
 	"github.com/pisarevaa/gophermart/internal/server"
 	"github.com/pisarevaa/gophermart/internal/server/configs"
@@ -26,6 +21,7 @@ type ServerTestSuite struct {
 	suite.Suite
 	cfg    configs.Config
 	logger *zap.SugaredLogger
+	client *resty.Client
 	token  string
 }
 
@@ -34,6 +30,7 @@ const login = "test"
 func (suite *ServerTestSuite) SetupSuite() {
 	suite.cfg = configs.NewConfig()
 	suite.logger = server.NewLogger()
+	suite.client = resty.New()
 	token, err := utils.GenerateJWTString(suite.cfg.TokenExpSec, suite.cfg.SecretKey, login)
 	suite.Require().NoError(err)
 	suite.token = token
@@ -41,25 +38,6 @@ func (suite *ServerTestSuite) SetupSuite() {
 
 func TestAgentSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
-}
-
-func MakeRequest(
-	suite *ServerTestSuite,
-	ts *httptest.Server,
-	method string,
-	url string,
-	body []byte,
-) (*http.Response, string) {
-	req, err := http.NewRequest(method, ts.URL+url, bytes.NewBuffer(body))
-	suite.Require().NoError(err)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept-Encoding", "")
-	resp, err := ts.Client().Do(req)
-	suite.Require().NoError(err)
-	defer resp.Body.Close()
-	respBody, err := io.ReadAll(resp.Body)
-	suite.Require().NoError(err)
-	return resp, string(respBody)
 }
 
 func (suite *ServerTestSuite) TestRegisterUser() {
@@ -83,13 +61,12 @@ func (suite *ServerTestSuite) TestRegisterUser() {
 		Login:    "test",
 		Password: "123",
 	}
-	userJson, err := json.Marshal(user)
+	resp, err := suite.client.R().
+		SetBody(user).
+		SetHeader("Content-Type", "application/json").
+		Post(ts.URL + "/api/user/register")
 	suite.Require().NoError(err)
-
-	resp, _ := MakeRequest(suite, ts, "POST", "/api/user/register", userJson)
-
-	defer resp.Body.Close()
-	suite.Require().Equal(200, resp.StatusCode)
+	suite.Require().Equal(200, resp.StatusCode())
 }
 
 func (suite *ServerTestSuite) TestLogin() {
@@ -118,10 +95,10 @@ func (suite *ServerTestSuite) TestLogin() {
 		Password: "123",
 	}
 
-	userJson, _ := json.Marshal(user)
-
-	resp, _ := MakeRequest(suite, ts, "POST", "/api/user/login", userJson)
-
-	defer resp.Body.Close()
-	suite.Require().Equal(200, resp.StatusCode)
+	resp, err := suite.client.R().
+		SetBody(user).
+		SetHeader("Content-Type", "application/json").
+		Post(ts.URL + "/api/user/login")
+	suite.Require().NoError(err)
+	suite.Require().Equal(200, resp.StatusCode())
 }
