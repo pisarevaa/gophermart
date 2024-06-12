@@ -14,9 +14,8 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
-type OrderUri struct {
-	Number    string `uri:"number"              binding:"required"`
-	IsInvalid bool   `uri:"isInvalid,omitempty"`
+type orderURI struct {
+	Number string `uri:"number" binding:"required"`
 }
 
 type Config struct {
@@ -54,15 +53,17 @@ func NewConfig() Config {
 }
 
 func GetOrder(c *gin.Context) {
-	var orderUri OrderUri
-	if err := c.ShouldBindUri(&orderUri); err != nil {
+	var url orderURI
+	if err := c.ShouldBindUri(&url); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
+	isInvalid := c.DefaultQuery("isInvalid", "false")
+
 	var statuses []string
 
-	if orderUri.IsInvalid {
+	if isInvalid == "true" {
 		statuses = []string{
 			"REGISTERED",
 			"INVALID",
@@ -79,12 +80,14 @@ func GetOrder(c *gin.Context) {
 	randomStatus := statuses[randomInt]
 
 	orderResponse := OrderReponse{
-		Number: orderUri.Number,
+		Number: url.Number,
 		Status: randomStatus,
 	}
 
+	var maxAccraul int64 = 500
+
 	if randomStatus == "PROCESSED" {
-		orderResponse.Accrual = rand.Int64N(500)
+		orderResponse.Accrual = rand.Int64N(maxAccraul)
 	}
 
 	c.JSON(http.StatusOK, orderResponse)

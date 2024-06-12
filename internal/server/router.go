@@ -21,7 +21,7 @@ func NewRouter(cfg configs.Config, logger *zap.SugaredLogger, repo storage.Stora
 	}
 	r := gin.Default()
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
-	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.BasePath = "/"
 
 	api := r.Group("/api/user")
 	{

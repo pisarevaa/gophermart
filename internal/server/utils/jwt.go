@@ -30,7 +30,7 @@ func GenerateJWTString(tokenExpSec int64, secretKey string, login string) (strin
 
 func GetUserLogin(token string, secretKey string) (string, error) {
 	claims := &Claims{}
-	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, claims, func(_ *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
 	if err != nil {
@@ -41,14 +41,14 @@ func GetUserLogin(token string, secretKey string) (string, error) {
 
 func JWTAuth(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		Authorization := c.Request.Header["Authorization"]
-		if len(Authorization) != 1 {
+		authorization := c.Request.Header["Authorization"]
+		if len(authorization) != 1 {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is not set"})
 			return
 		}
-		parts := strings.Split(Authorization[0], " ")
-		if len(parts) != 2 {
+		parts := strings.Split(authorization[0], " ")
+		var headersPartsCount = 2
+		if len(parts) != headersPartsCount {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is not set"})
 			return
 		}
@@ -62,28 +62,3 @@ func JWTAuth(secretKey string) gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-// Надо доделать
-// func RateLimiter(rateLimit int) gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-
-// 		Authorization := c.Request.Header["Authorization"]
-// 		if len(Authorization) != 1 {
-// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is not set"})
-// 			return
-// 		}
-// 		parts := strings.Split(Authorization[0], " ")
-// 		if len(parts) != 2 {
-// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is not set"})
-// 			return
-// 		}
-// 		token := parts[1]
-// 		login, err := GetUserLogin(token, secretKey)
-// 		if err != nil {
-// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is wrong"})
-// 			return
-// 		}
-// 		c.Set("Login", login)
-// 		c.Next()
-// 	}
-// }

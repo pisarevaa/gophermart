@@ -46,7 +46,7 @@ type ServerTestSuite struct {
 func (suite *ServerTestSuite) SetupSuite() {
 	suite.cfg = configs.NewConfig()
 	suite.logger = server.NewLogger()
-	suite.repo = storage.NewDB(suite.cfg.DatabaseUri, suite.logger)
+	suite.repo = storage.NewDB(suite.cfg.DatabaseURI, suite.logger)
 	suite.client = resty.New()
 }
 

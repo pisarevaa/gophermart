@@ -59,11 +59,10 @@ func (s *Service) AddOrder(c *gin.Context) {
 			c.JSON(http.StatusOK, storage.Success{
 				Success: true,
 			})
-			return
 		} else {
 			c.JSON(http.StatusConflict, gin.H{"error": "order number is already added by other user"})
-			return
 		}
+		return
 	}
 
 	err = s.Repo.StoreOrder(c, number, login)

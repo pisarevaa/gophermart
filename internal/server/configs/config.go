@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	Host                 string `env:"RUN_ADDRESS"`
-	DatabaseUri          string `env:"DATABASE_URI"`
+	DatabaseURI          string `env:"DATABASE_URI"`
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 	GinMode              string `env:"GIN_MODE"`
 	SecretKey            string `env:"SECRET_KEY"`
@@ -23,7 +23,7 @@ func NewConfig() Config {
 	flag.StringVar(&config.Host, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&config.GinMode, "g", "debug", "gin server logs mode")
 	flag.StringVar(
-		&config.DatabaseUri,
+		&config.DatabaseURI,
 		"d",
 		"postgres://gophermart:CC7B02B06C4C1CF81FAE7D8C46C429EC@localhost:5432/gophermart?sslmode=disable",
 		"database uri",
@@ -49,8 +49,8 @@ func NewConfig() Config {
 	if envConfig.Host != "" {
 		config.Host = envConfig.Host
 	}
-	if envConfig.DatabaseUri != "" {
-		config.DatabaseUri = envConfig.DatabaseUri
+	if envConfig.DatabaseURI != "" {
+		config.DatabaseURI = envConfig.DatabaseURI
 	}
 	if envConfig.AccrualSystemAddress != "" {
 		config.AccrualSystemAddress = envConfig.AccrualSystemAddress

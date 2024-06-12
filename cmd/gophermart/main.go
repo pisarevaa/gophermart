@@ -17,6 +17,7 @@ import (
 // @title		Swagger Gophermart Service API
 // @version	1.0
 // @host		localhost:8080
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -25,7 +26,7 @@ func main() {
 
 	cfg := configs.NewConfig()
 	logger := server.NewLogger()
-	repo := storage.NewDB(cfg.DatabaseUri, logger)
+	repo := storage.NewDB(cfg.DatabaseURI, logger)
 	r := server.NewRouter(cfg, logger, repo)
 
 	// Запускаем фоновую задачу по обновлению статусов заказов

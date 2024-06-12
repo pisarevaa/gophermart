@@ -20,13 +20,13 @@ type DBTransaction struct {
 	pgx.Tx
 }
 
-func NewDB(databaseUri string, logger *zap.SugaredLogger) *DBStorage {
-	dbpool, err := pgxpool.New(context.Background(), databaseUri)
+func NewDB(databaseURI string, logger *zap.SugaredLogger) *DBStorage {
+	dbpool, err := pgxpool.New(context.Background(), databaseURI)
 	if err != nil {
 		logger.Error("Unable to create connection pool: %v", err)
 		return nil
 	}
-	m, err := migrate.New("file://migrations", databaseUri)
+	m, err := migrate.New("file://migrations", databaseURI)
 	if err != nil {
 		logger.Error("Unable to migrate tables: ", err)
 	}

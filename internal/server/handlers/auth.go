@@ -76,13 +76,13 @@ func (s *Service) LoginUser(c *gin.Context) {
 		return
 	}
 
-	userInDb, err := s.Repo.GetUser(c, user.Login)
+	userInDB, err := s.Repo.GetUser(c, user.Login)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "login is not found"})
 		return
 	}
 
-	isCorrect, err := utils.CheckPasswordHash(user.Password, userInDb.Password, s.Config.SecretKey)
+	isCorrect, err := utils.CheckPasswordHash(user.Password, userInDB.Password, s.Config.SecretKey)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -92,7 +92,7 @@ func (s *Service) LoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateJWTString(s.Config.TokenExpSec, s.Config.SecretKey, userInDb.Login)
+	token, err := utils.GenerateJWTString(s.Config.TokenExpSec, s.Config.SecretKey, userInDB.Login)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
