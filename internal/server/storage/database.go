@@ -40,8 +40,8 @@ func NewDB(databaseUri string, logger *zap.SugaredLogger) *DBStorage {
 
 func (dbpool *DBStorage) GetUser(ctx context.Context, login string) (User, error) {
 	var user User
-	err := dbpool.QueryRow(ctx, "SELECT login, password, balance FROM users WHERE login = $1", login).
-		Scan(&user.Login, &user.Password, &user.Balance)
+	err := dbpool.QueryRow(ctx, "SELECT login, password, balance, withdrawn FROM users WHERE login = $1", login).
+		Scan(&user.Login, &user.Password, &user.Balance, &user.Withdrawn)
 	if err != nil {
 		return user, err
 	}

@@ -15,7 +15,8 @@ import (
 )
 
 type OrderUri struct {
-	Number string `uri:"number" binding:"required"`
+	Number    string `uri:"number"              binding:"required"`
+	IsInvalid bool   `uri:"isInvalid,omitempty"`
 }
 
 type Config struct {
@@ -59,11 +60,20 @@ func GetOrder(c *gin.Context) {
 		return
 	}
 
-	statuses := []string{
-		"REGISTERED",
-		"INVALID",
-		"PROCESSING",
-		"PROCESSED",
+	var statuses []string
+
+	if orderUri.IsInvalid {
+		statuses = []string{
+			"REGISTERED",
+			"INVALID",
+			"PROCESSING",
+		}
+	} else {
+		statuses = []string{
+			"REGISTERED",
+			"PROCESSED",
+			"PROCESSING",
+		}
 	}
 	randomInt := rand.IntN(len(statuses))
 	randomStatus := statuses[randomInt]

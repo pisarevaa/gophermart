@@ -40,13 +40,13 @@ type User struct {
 }
 
 type Order struct {
-	Number      string    `json:"number"      binding:"required"`
-	Status      string    `json:"status"      binding:"required"`
-	Accrual     int64     `json:"accrual"     binding:"required"`
-	Withdrawn   int64     `json:"withdrawn"   binding:"required"`
-	Login       string    `json:"login"       binding:"required"`
-	UploadedAt  time.Time `json:"uploadedAt"  binding:"required"`
-	ProcessedAt time.Time `json:"processedAt" binding:"required"`
+	Number      string     `json:"number"      binding:"required"`
+	Status      string     `json:"status"      binding:"required"`
+	Accrual     int64      `json:"accrual"     binding:"required"`
+	Withdrawn   int64      `json:"withdrawn"   binding:"required"`
+	Login       string     `json:"login"       binding:"required"`
+	UploadedAt  time.Time  `json:"uploadedAt"  binding:"required"`
+	ProcessedAt *time.Time `json:"processedAt" binding:"required"`
 }
 
 type OrderToUpdate struct {

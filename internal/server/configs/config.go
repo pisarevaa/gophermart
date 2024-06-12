@@ -31,7 +31,7 @@ func NewConfig() Config {
 	flag.StringVar(&config.AccrualSystemAddress, "r", "localhost:8085", "charging system address")
 	flag.StringVar(&config.SecretKey, "k", "7fd315fd5f381bb9035d003dbd904102", "secret key to hash password")
 	flag.Int64Var(&config.TokenExpSec, "t", 7200, "time in sec to expire token")
-	flag.Int64Var(&config.TaskInterval, "i", 10, "time in sec to update order statuses")
+	flag.Int64Var(&config.TaskInterval, "i", 1, "time in sec to update order statuses")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		log.Fatal("used not declared arguments")

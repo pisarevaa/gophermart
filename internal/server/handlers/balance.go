@@ -116,7 +116,7 @@ func (s *Service) Withdrawls(c *gin.Context) {
 			WithdrawalsReponse{
 				Order:       order.Number,
 				Sum:         order.Withdrawn,
-				ProcessedAt: utils.FormattedDatetime(order.ProcessedAt),
+				ProcessedAt: utils.FormattedDatetime(*order.ProcessedAt),
 			},
 		)
 	}
