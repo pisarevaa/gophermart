@@ -154,7 +154,7 @@ func (tx *DBTransaction) UpdateOrderStatus(ctx context.Context, order OrderStatu
 	return nil
 }
 
-func (tx *DBTransaction) AccrualUserBalance(ctx context.Context, accraul int64, login string) error {
+func (tx *DBTransaction) AccrualUserBalance(ctx context.Context, accraul float32, login string) error {
 	_, err := tx.Exec(ctx, `
 			UPDATE users SET balance = balance + $1 WHERE login = $2
 		`, accraul, login)
@@ -184,7 +184,7 @@ func (tx *DBTransaction) GetOrderWithLock(ctx context.Context, number string) (O
 	return order, nil
 }
 
-func (tx *DBTransaction) WithdrawUserBalance(ctx context.Context, login string, withdraw int64) error {
+func (tx *DBTransaction) WithdrawUserBalance(ctx context.Context, login string, withdraw float32) error {
 	_, err := tx.Exec(ctx, `
 			UPDATE users SET balance = balance - $1, withdrawn = withdrawn + $2 WHERE login = $3
 		`, withdraw, withdraw, login)
@@ -194,7 +194,7 @@ func (tx *DBTransaction) WithdrawUserBalance(ctx context.Context, login string, 
 	return nil
 }
 
-func (tx *DBTransaction) WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) error {
+func (tx *DBTransaction) WithdrawOrderBalance(ctx context.Context, number string, withdraw float32) error {
 	_, err := tx.Exec(ctx, `
 			UPDATE orders SET withdrawn = withdrawn + $1 WHERE number = $2
 		`, withdraw, number)

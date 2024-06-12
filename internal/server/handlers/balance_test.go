@@ -14,7 +14,7 @@ import (
 
 type WithdrawalsReponse struct {
 	Order       string    `json:"order"        binding:"required"`
-	Sum         int64     `json:"sum"          binding:"required"`
+	Sum         float32   `json:"sum"          binding:"required"`
 	ProcessedAt time.Time `json:"processed_at" binding:"required"`
 }
 
@@ -27,8 +27,8 @@ func (suite *ServerTestSuite) TestGetBalance() {
 	user := storage.User{
 		Login:     "test",
 		Password:  "123",
-		Balance:   int64(500),
-		Withdrawn: int64(300),
+		Balance:   float32(500),
+		Withdrawn: float32(300),
 	}
 
 	m.EXPECT().
@@ -46,8 +46,8 @@ func (suite *ServerTestSuite) TestGetBalance() {
 		Get(ts.URL + "/api/user/balance")
 	suite.Require().NoError(err)
 	suite.Require().Equal(200, resp.StatusCode())
-	suite.Require().Equal(int64(300), userBalanceResponse.Withdrawn)
-	suite.Require().Equal(int64(500), userBalanceResponse.Current)
+	suite.Require().Equal(float32(300), userBalanceResponse.Withdrawn)
+	suite.Require().Equal(float32(500), userBalanceResponse.Current)
 }
 
 // Пока не понимаю как замокать DBTransaction, вернусь позже
@@ -60,19 +60,19 @@ func (suite *ServerTestSuite) TestGetBalance() {
 
 // 	withdraw := handlers.Withdraw{
 // 		Order: "123",
-// 		Sum:   int64(200),
+// 		Sum:   float32(200),
 // 	}
 
 // 	user := storage.User{
 // 		Login:    "test",
 // 		Password: "123",
-// 		Balance:  int64(500),
+// 		Balance:  float32(500),
 // 	}
 
 // 	order := storage.Order{
 // 		Number:     "123",
 // 		Status:     "PROCESSED",
-// 		Accrual:    int64(100),
+// 		Accrual:    float32(100),
 // 		Login:      "test",
 // 		UploadedAt: time.Now(),
 // 	}
@@ -123,7 +123,7 @@ func (suite *ServerTestSuite) TestWithdrawls() {
 	orders := []storage.Order{{
 		Number:      "123",
 		Status:      "PROCESSED",
-		Accrual:     int64(100),
+		Accrual:     float32(100),
 		Login:       "test",
 		UploadedAt:  now,
 		ProcessedAt: &now,

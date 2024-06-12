@@ -28,7 +28,7 @@ func NewConfig() Config {
 		"postgres://gophermart:CC7B02B06C4C1CF81FAE7D8C46C429EC@localhost:5432/gophermart?sslmode=disable",
 		"database uri",
 	)
-	flag.StringVar(&config.AccrualSystemAddress, "r", "localhost:8085", "charging system address")
+	flag.StringVar(&config.AccrualSystemAddress, "r", "http://localhost:8085", "charging system address")
 	flag.StringVar(&config.SecretKey, "k", "7fd315fd5f381bb9035d003dbd904102", "secret key to hash password")
 	flag.Int64Var(&config.TokenExpSec, "t", 7200, "time in sec to expire token")
 	flag.Int64Var(&config.TaskInterval, "i", 1, "time in sec to update order statuses")

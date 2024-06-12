@@ -41,17 +41,17 @@ type RegisterUser struct {
 }
 
 type User struct {
-	Login     string `json:"login"     binding:"required"`
-	Password  string `json:"password"  binding:"required"`
-	Balance   int64  `json:"balance"   binding:"required"`
-	Withdrawn int64  `json:"withdrawn" binding:"required"`
+	Login     string  `json:"login"     binding:"required"`
+	Password  string  `json:"password"  binding:"required"`
+	Balance   float32 `json:"balance"   binding:"required"`
+	Withdrawn float32 `json:"withdrawn" binding:"required"`
 }
 
 type Order struct {
 	Number      string     `json:"number"      binding:"required"`
 	Status      string     `json:"status"      binding:"required"`
-	Accrual     int64      `json:"accrual"     binding:"required"`
-	Withdrawn   int64      `json:"withdrawn"   binding:"required"`
+	Accrual     float32    `json:"accrual"     binding:"required"`
+	Withdrawn   float32    `json:"withdrawn"   binding:"required"`
 	Login       string     `json:"login"       binding:"required"`
 	UploadedAt  time.Time  `json:"uploadedAt"  binding:"required"`
 	ProcessedAt *time.Time `json:"processedAt" binding:"required"`
@@ -63,7 +63,7 @@ type OrderToUpdate struct {
 }
 
 type OrderStatus struct {
-	Number  string `json:"number"  binding:"required"`
-	Status  string `json:"status"  binding:"required"`
-	Accrual int64  `json:"accrual" binding:"required"`
+	Number  string  `json:"number"  binding:"required"`
+	Status  string  `json:"status"  binding:"required"`
+	Accrual float32 `json:"accrual" binding:"required"`
 }

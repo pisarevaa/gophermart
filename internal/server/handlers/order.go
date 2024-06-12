@@ -13,7 +13,7 @@ import (
 type OrderReponse struct {
 	Number     string                  `json:"number"     binding:"required"`
 	Status     string                  `json:"status"     binding:"required"`
-	Accrual    int64                   `json:"accrual"    binding:"required"`
+	Accrual    float32                 `json:"accrual"    binding:"required"`
 	UploadedAt utils.FormattedDatetime `json:"uploadedAt" binding:"required" swaggertype:"string" example:"2024-06-12T08:00:04+03:00"`
 }
 

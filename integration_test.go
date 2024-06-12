@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"errors"
 	"math/rand/v2"
 	"net/http/httptest"
 	"os"
@@ -25,13 +26,13 @@ import (
 type OrderReponse struct {
 	Number     string    `json:"number"     binding:"required"`
 	Status     string    `json:"status"     binding:"required"`
-	Accrual    int64     `json:"accrual"    binding:"required"`
+	Accrual    float32   `json:"accrual"    binding:"required"`
 	UploadedAt time.Time `json:"uploadedAt" binding:"required"`
 }
 
 type WithdrawalsReponse struct {
 	Order       string    `json:"order"        binding:"required"`
-	Sum         int64     `json:"sum"          binding:"required"`
+	Sum         float32   `json:"sum"          binding:"required"`
 	ProcessedAt time.Time `json:"processed_at" binding:"required"`
 }
 
@@ -110,9 +111,11 @@ func (suite *ServerTestSuite) TestFullProccess() {
 	suite.Require().True(successAddOrder.Success)
 
 	// Получение списка заказов и проверка что заказ успешен
-	var orderAccrual int64
+	var orderAccrual float32
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	defer ticker.Stop()
+	var attempt int64
+	var maxAttempts int64 = 20
 	for {
 		<-ticker.C
 		var orders []OrderReponse
@@ -126,7 +129,12 @@ func (suite *ServerTestSuite) TestFullProccess() {
 		suite.Require().Len(orders, 1)
 		suite.Require().Equal(orders[0].Number, number)
 		status := orders[0].Status
+		if attempt > maxAttempts {
+			suite.Require().NoError(errors.New("too many attempts"))
+			break
+		}
 		if status == "NEW" || status == "PROCESSING" || status == "REGISTERED" {
+			attempt++
 			continue
 		}
 		suite.Require().Positive(orders[0].Accrual)
@@ -135,7 +143,7 @@ func (suite *ServerTestSuite) TestFullProccess() {
 	}
 
 	// Списание средств со счета пользователя
-	sumToWidraw := rand.Int64N(orderAccrual)
+	sumToWidraw := float32(rand.Int64N(int64(orderAccrual)))
 	suite.logger.Info("sumToWidraw: ", sumToWidraw)
 	withdrawOrder := handlers.Withdraw{
 		Order: number,
@@ -161,8 +169,8 @@ func (suite *ServerTestSuite) TestFullProccess() {
 		Get(ts.URL + "/api/user/balance")
 	suite.Require().NoError(err)
 	suite.Require().Equal(200, resp.StatusCode())
-	suite.Require().Equal(sumToWidraw, userBalance.Withdrawn)
-	suite.Require().Equal(orderAccrual-sumToWidraw, userBalance.Current)
+	suite.Require().Equal(int64(sumToWidraw), int64(userBalance.Withdrawn))
+	suite.Require().Equal(int64(orderAccrual-sumToWidraw), int64(userBalance.Current))
 
 	// Список заказов со списанием
 	var withdrawals []WithdrawalsReponse
@@ -175,5 +183,5 @@ func (suite *ServerTestSuite) TestFullProccess() {
 	suite.Require().Equal(200, resp.StatusCode())
 	suite.Require().Len(withdrawals, 1)
 	suite.Require().Equal(withdrawals[0].Order, number)
-	suite.Require().Equal(withdrawals[0].Sum, sumToWidraw)
+	suite.Require().Equal(int64(withdrawals[0].Sum), int64(sumToWidraw))
 }

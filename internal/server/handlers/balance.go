@@ -8,19 +8,19 @@ import (
 )
 
 type Withdraw struct {
-	Order string `json:"order" binding:"required"`
-	Sum   int64  `json:"sum"   binding:"required"`
+	Order string  `json:"order" binding:"required"`
+	Sum   float32 `json:"sum"   binding:"required"`
 }
 
 type WithdrawalsReponse struct {
 	Order       string                  `json:"order"        binding:"required"`
-	Sum         int64                   `json:"sum"          binding:"required"`
+	Sum         float32                 `json:"sum"          binding:"required"`
 	ProcessedAt utils.FormattedDatetime `json:"processed_at" binding:"required" swaggertype:"string" example:"2024-06-12T08:00:04+03:00"`
 }
 
 type UserBalanceInfo struct {
-	Current   int64 `json:"current"   binding:"required"`
-	Withdrawn int64 `json:"withdrawn" binding:"required"`
+	Current   float32 `json:"current"   binding:"required"`
+	Withdrawn float32 `json:"withdrawn" binding:"required"`
 }
 
 // GetBalance godoc
