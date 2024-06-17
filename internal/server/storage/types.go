@@ -63,7 +63,7 @@ type OrderToUpdate struct {
 }
 
 type OrderStatus struct {
-	Number  string  `json:"number"  binding:"required"`
+	Number  string  `json:"order"   binding:"required"`
 	Status  string  `json:"status"  binding:"required"`
 	Accrual float32 `json:"accrual" binding:"required"`
 }

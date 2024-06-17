@@ -36,6 +36,22 @@ type WithdrawalsReponse struct {
 	ProcessedAt time.Time `json:"processed_at" binding:"required"`
 }
 
+type Good struct {
+	Description string `json:"description" binding:"required"`
+	Price       int64  `json:"price"       binding:"required"`
+}
+
+type AddAccrualOrder struct {
+	Order string `json:"order" binding:"required"`
+	Goods []Good `json:"goods" binding:"required"`
+}
+
+type RewardSchema struct {
+	Match      string `json:"match"       binding:"required"`
+	Reward     int64  `json:"reward"      binding:"required"`
+	RewardType string `json:"reward_type" binding:"required"`
+}
+
 type ServerTestSuite struct {
 	suite.Suite
 	cfg    configs.Config
@@ -109,6 +125,35 @@ func (suite *ServerTestSuite) TestFullProccess() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(202, resp.StatusCode())
 	suite.Require().True(successAddOrder.Success)
+
+	// Загрузка схемы вознаграждения в сервис Accraul (accrual_linux_amd64)
+	match := "match_" + strconv.Itoa(rand.IntN(100000))
+	rewardSchema := RewardSchema{
+		Match:      match,
+		Reward:     20,
+		RewardType: "%",
+	}
+	resp, err = suite.client.R().
+		SetBody(rewardSchema).
+		SetHeader("Content-Type", "application/json").
+		Post(suite.cfg.AccrualSystemAddress + "/api/goods")
+	suite.Require().NoError(err)
+	suite.Require().Equal(200, resp.StatusCode())
+
+	// Загрузка заказа в сервис Accraul (accrual_linux_amd64)
+	accraulOrder := AddAccrualOrder{
+		Order: number,
+		Goods: []Good{{
+			Description: match,
+			Price:       100,
+		}},
+	}
+	resp, err = suite.client.R().
+		SetBody(accraulOrder).
+		SetHeader("Content-Type", "application/json").
+		Post(suite.cfg.AccrualSystemAddress + "/api/orders")
+	suite.Require().NoError(err)
+	suite.Require().Equal(202, resp.StatusCode())
 
 	// Получение списка заказов и проверка что заказ успешен
 	var orderAccrual float32
