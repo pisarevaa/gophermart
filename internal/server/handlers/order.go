@@ -71,6 +71,8 @@ func (s *Service) AddOrder(c *gin.Context) {
 		return
 	}
 
+	s.Logger.Info("successfully store order ", number, " login ", login)
+
 	c.JSON(http.StatusAccepted, storage.Success{
 		Success: true,
 	})
