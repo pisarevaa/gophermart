@@ -174,12 +174,31 @@ func (tx *DBTransaction) GetUserWithLock(ctx context.Context, login string) (Use
 	return user, nil
 }
 
-func (tx *DBTransaction) GetOrderWithLock(ctx context.Context, number string) (Order, error) {
+func (tx *DBTransaction) GetOrderWithLock(ctx context.Context, number string, login string) (Order, error) {
 	var order Order
 	err := tx.QueryRow(ctx, "SELECT number, status, accrual, withdrawn, login, uploaded_at, processed_at FROM orders WHERE number = $1", number).
 		Scan(&order.Number, &order.Status, &order.Accrual, &order.Withdrawn, &order.Login, &order.UploadedAt, &order.ProcessedAt)
 	if err != nil {
-		return order, err
+		loc, errLoc := time.LoadLocation("Europe/Moscow")
+		if errLoc != nil {
+			return order, errLoc
+		}
+		now := time.Now().In(loc)
+		order = Order{
+			Number:      number,
+			Status:      "PROCESSED",
+			Accrual:     0,
+			Withdrawn:   0,
+			Login:       login,
+			UploadedAt:  now,
+			ProcessedAt: &now,
+		}
+		_, err = tx.Exec(ctx, `
+				INSERT INTO orders (number, status, accrual, withdrawn, login, uploaded_at, processed_at) VALUES ($1, $2, $3, $4, $5, $6)
+			`, number, "PROCESSED", 0, 0, login, now, now)
+		if err != nil {
+			return order, err
+		}
 	}
 	return order, nil
 }

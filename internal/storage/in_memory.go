@@ -148,7 +148,7 @@ func (m *MemoryStorage) GetUserWithLock(_ context.Context, login string) (User, 
 	return user, nil
 }
 
-func (m *MemoryStorage) GetOrderWithLock(_ context.Context, number string) (Order, error) {
+func (m *MemoryStorage) GetOrderWithLock(_ context.Context, number string, _ string) (Order, error) {
 	order, ok := m.Orders[number]
 	if !ok {
 		return order, errors.New("order not found")

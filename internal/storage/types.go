@@ -21,7 +21,7 @@ type Transaction interface {
 	UpdateOrderStatus(ctx context.Context, order OrderStatus) (err error)
 	AccrualUserBalance(ctx context.Context, accraul float32, login string) (err error)
 	GetUserWithLock(ctx context.Context, login string) (user User, err error)
-	GetOrderWithLock(ctx context.Context, number string) (order Order, err error)
+	GetOrderWithLock(ctx context.Context, number string, login string) (order Order, err error)
 	WithdrawUserBalance(ctx context.Context, login string, withdraw float32) (err error)
 	WithdrawOrderBalance(ctx context.Context, number string, withdraw float32) (err error)
 	Commit(ctx context.Context) (err error)

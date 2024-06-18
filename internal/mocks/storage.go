@@ -217,18 +217,18 @@ func (mr *MockTransactionMockRecorder) GetOrderToUpdateStatus(ctx interface{}) *
 }
 
 // GetOrderWithLock mocks base method.
-func (m *MockTransaction) GetOrderWithLock(ctx context.Context, number string) (storage.Order, error) {
+func (m *MockTransaction) GetOrderWithLock(ctx context.Context, number, login string) (storage.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOrderWithLock", ctx, number)
+	ret := m.ctrl.Call(m, "GetOrderWithLock", ctx, number, login)
 	ret0, _ := ret[0].(storage.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOrderWithLock indicates an expected call of GetOrderWithLock.
-func (mr *MockTransactionMockRecorder) GetOrderWithLock(ctx, number interface{}) *gomock.Call {
+func (mr *MockTransactionMockRecorder) GetOrderWithLock(ctx, number, login interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderWithLock", reflect.TypeOf((*MockTransaction)(nil).GetOrderWithLock), ctx, number)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderWithLock", reflect.TypeOf((*MockTransaction)(nil).GetOrderWithLock), ctx, number, login)
 }
 
 // GetUserWithLock mocks base method.

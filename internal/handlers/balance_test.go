@@ -88,7 +88,7 @@ func (suite *ServerTestSuite) TestWithdrawBalanceMockDB() {
 		Return(user, nil)
 
 	tx.EXPECT().
-		GetOrderWithLock(gomock.Any(), gomock.Any()).
+		GetOrderWithLock(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(order, nil)
 
 	tx.EXPECT().

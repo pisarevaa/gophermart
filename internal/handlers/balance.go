@@ -94,7 +94,7 @@ func (s *Service) WithdrawBalance(c *gin.Context) {
 		return
 	}
 
-	order, err := tx.GetOrderWithLock(c, withdraw.Order)
+	order, err := tx.GetOrderWithLock(c, withdraw.Order, login)
 	if err != nil {
 		s.Logger.Info("order is not found")
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "order is not found"})
