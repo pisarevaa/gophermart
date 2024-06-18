@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-resty/resty/v2"
 
-	"github.com/pisarevaa/gophermart/internal/server/configs"
-	"github.com/pisarevaa/gophermart/internal/server/storage"
+	"github.com/pisarevaa/gophermart/internal/configs"
+	"github.com/pisarevaa/gophermart/internal/storage"
 	"go.uber.org/zap"
 )
 

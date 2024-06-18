@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/pisarevaa/gophermart/internal/server/storage"
-	"github.com/pisarevaa/gophermart/internal/server/utils"
+	"github.com/pisarevaa/gophermart/internal/storage"
+	"github.com/pisarevaa/gophermart/internal/utils"
 )
 
 type SuccessLogin struct {

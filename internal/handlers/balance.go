@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pisarevaa/gophermart/internal/server/utils"
+	"github.com/pisarevaa/gophermart/internal/utils"
 )
 
 type Withdraw struct {

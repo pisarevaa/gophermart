@@ -8,9 +8,9 @@ import (
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/golang/mock/gomock"
 
-	"github.com/pisarevaa/gophermart/internal/server"
-	mock "github.com/pisarevaa/gophermart/internal/server/mocks"
-	"github.com/pisarevaa/gophermart/internal/server/storage"
+	server "github.com/pisarevaa/gophermart/internal"
+	mock "github.com/pisarevaa/gophermart/internal/mocks"
+	"github.com/pisarevaa/gophermart/internal/storage"
 )
 
 type OrderReponse struct {

@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
-	"github.com/pisarevaa/gophermart/internal/server"
-	"github.com/pisarevaa/gophermart/internal/server/configs"
-	"github.com/pisarevaa/gophermart/internal/server/handlers"
-	"github.com/pisarevaa/gophermart/internal/server/storage"
-	"github.com/pisarevaa/gophermart/internal/server/tasks"
+	server "github.com/pisarevaa/gophermart/internal"
+	"github.com/pisarevaa/gophermart/internal/configs"
+	"github.com/pisarevaa/gophermart/internal/handlers"
+	"github.com/pisarevaa/gophermart/internal/storage"
+	"github.com/pisarevaa/gophermart/internal/tasks"
 )
 
 type OrderReponse struct {

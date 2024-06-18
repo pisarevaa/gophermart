@@ -6,10 +6,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/pisarevaa/gophermart/internal/server"
-	"github.com/pisarevaa/gophermart/internal/server/handlers"
-	mock "github.com/pisarevaa/gophermart/internal/server/mocks"
-	"github.com/pisarevaa/gophermart/internal/server/storage"
+	server "github.com/pisarevaa/gophermart/internal"
+	"github.com/pisarevaa/gophermart/internal/handlers"
+	mock "github.com/pisarevaa/gophermart/internal/mocks"
+	"github.com/pisarevaa/gophermart/internal/storage"
 )
 
 type WithdrawalsReponse struct {
