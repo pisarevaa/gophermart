@@ -194,7 +194,7 @@ func (tx *DBTransaction) GetOrderWithLock(ctx context.Context, number string, lo
 			ProcessedAt: &now,
 		}
 		_, err = tx.Exec(ctx, `
-				INSERT INTO orders (number, status, accrual, withdrawn, login, uploaded_at, processed_at) VALUES ($1, $2, $3, $4, $5, $6)
+				INSERT INTO orders (number, status, accrual, withdrawn, login, uploaded_at, processed_at) VALUES ($1, $2, $3, $4, $5, $6, $7)
 			`, number, "PROCESSED", 0, 0, login, now, now)
 		if err != nil {
 			return order, err
