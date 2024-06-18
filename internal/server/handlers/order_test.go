@@ -20,7 +20,7 @@ type OrderReponse struct {
 	UploadedAt time.Time `json:"uploadedAt" binding:"required"`
 }
 
-func (suite *ServerTestSuite) TestAddOrder() {
+func (suite *ServerTestSuite) TestAddOrderMockDB() {
 	ctrl := gomock.NewController(suite.T())
 	defer ctrl.Finish()
 
@@ -48,7 +48,7 @@ func (suite *ServerTestSuite) TestAddOrder() {
 	suite.Require().Equal(202, resp.StatusCode())
 }
 
-func (suite *ServerTestSuite) TestGetOrders() {
+func (suite *ServerTestSuite) TestGetOrdersMockDB() {
 	ctrl := gomock.NewController(suite.T())
 	defer ctrl.Finish()
 
@@ -80,4 +80,31 @@ func (suite *ServerTestSuite) TestGetOrders() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(200, resp.StatusCode())
 	suite.Require().Len(orders, 1)
+}
+
+func (suite *ServerTestSuite) TestAddAndGetOrdersInMemory() {
+	m := storage.NewMemory()
+
+	number := goluhn.Generate(9)
+
+	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
+	defer ts.Close()
+
+	resp, err := suite.client.R().
+		SetBody(number).
+		SetHeader("Content-Type", "text/plain").
+		SetHeader("Authorization", "Bearer "+suite.token).
+		Post(ts.URL + "/api/user/orders")
+	suite.Require().NoError(err)
+	suite.Require().Equal(202, resp.StatusCode())
+
+	var ordersResponse []OrderReponse
+	resp, err = suite.client.R().
+		SetResult(&ordersResponse).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Authorization", "Bearer "+suite.token).
+		Get(ts.URL + "/api/user/orders")
+	suite.Require().NoError(err)
+	suite.Require().Equal(200, resp.StatusCode())
+	suite.Require().Len(ordersResponse, 1)
 }

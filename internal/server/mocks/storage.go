@@ -36,10 +36,10 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // BeginTransaction mocks base method.
-func (m *MockStorage) BeginTransaction(ctx context.Context) (*storage.DBTransaction, error) {
+func (m *MockStorage) BeginTransaction(ctx context.Context) (storage.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BeginTransaction", ctx)
-	ret0, _ := ret[0].(*storage.DBTransaction)
+	ret0, _ := ret[0].(storage.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -174,7 +174,7 @@ func (m *MockTransaction) EXPECT() *MockTransactionMockRecorder {
 }
 
 // AccrualUserBalance mocks base method.
-func (m *MockTransaction) AccrualUserBalance(ctx context.Context, accraul int64, login string) error {
+func (m *MockTransaction) AccrualUserBalance(ctx context.Context, accraul float32, login string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AccrualUserBalance", ctx, accraul, login)
 	ret0, _ := ret[0].(error)
@@ -246,6 +246,20 @@ func (mr *MockTransactionMockRecorder) GetUserWithLock(ctx, login interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserWithLock", reflect.TypeOf((*MockTransaction)(nil).GetUserWithLock), ctx, login)
 }
 
+// Rollback mocks base method.
+func (m *MockTransaction) Rollback(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Rollback", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Rollback indicates an expected call of Rollback.
+func (mr *MockTransactionMockRecorder) Rollback(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockTransaction)(nil).Rollback), ctx)
+}
+
 // UpdateOrderStatus mocks base method.
 func (m *MockTransaction) UpdateOrderStatus(ctx context.Context, order storage.OrderStatus) error {
 	m.ctrl.T.Helper()
@@ -261,7 +275,7 @@ func (mr *MockTransactionMockRecorder) UpdateOrderStatus(ctx, order interface{})
 }
 
 // WithdrawOrderBalance mocks base method.
-func (m *MockTransaction) WithdrawOrderBalance(ctx context.Context, number string, withdraw int64) error {
+func (m *MockTransaction) WithdrawOrderBalance(ctx context.Context, number string, withdraw float32) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithdrawOrderBalance", ctx, number, withdraw)
 	ret0, _ := ret[0].(error)
@@ -275,7 +289,7 @@ func (mr *MockTransactionMockRecorder) WithdrawOrderBalance(ctx, number, withdra
 }
 
 // WithdrawUserBalance mocks base method.
-func (m *MockTransaction) WithdrawUserBalance(ctx context.Context, login string, withdraw int64) error {
+func (m *MockTransaction) WithdrawUserBalance(ctx context.Context, login string, withdraw float32) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithdrawUserBalance", ctx, login, withdraw)
 	ret0, _ := ret[0].(error)

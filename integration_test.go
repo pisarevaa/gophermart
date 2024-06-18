@@ -83,150 +83,162 @@ func (suite *ServerTestSuite) TestFullProccess() {
 	task := tasks.NewTask(suite.cfg, suite.logger, suite.repo, suite.client)
 	go task.RunUpdateOrderStatuses(exit)
 
-	// Регистрация пользователя
 	password := "123"
 	randomLogin := "test_user_" + strconv.Itoa(rand.IntN(100000))
-	suite.logger.Info("randomLogin: ", randomLogin)
 	user := storage.RegisterUser{
 		Login:    randomLogin,
 		Password: password,
 	}
-	var successRegister storage.Success
-	resp, err := suite.client.R().
-		SetResult(&successRegister).
-		SetBody(user).
-		SetHeader("Content-Type", "application/json").
-		Post(ts.URL + "/api/user/register")
-	suite.Require().NoError(err)
-	suite.Require().Equal(200, resp.StatusCode())
-	suite.Require().True(successRegister.Success)
 
-	// Логин пользователя
-	var successLogin handlers.SuccessLogin
-	resp, err = suite.client.R().
-		SetResult(&successLogin).
-		SetBody(user).
-		SetHeader("Content-Type", "application/json").
-		Post(ts.URL + "/api/user/login")
-	suite.Require().NoError(err)
-	suite.Require().Equal(200, resp.StatusCode())
-	suite.Require().True(successLogin.Success)
-
-	// Загрузка заказа
-	number := goluhn.Generate(9)
-	suite.logger.Info("randomOrder: ", number)
-	var successAddOrder storage.Success
-	resp, err = suite.client.R().
-		SetResult(&successAddOrder).
-		SetBody(number).
-		SetHeader("Content-Type", "text/plain").
-		SetHeader("Authorization", "Bearer "+successLogin.Token).
-		Post(ts.URL + "/api/user/orders")
-	suite.Require().NoError(err)
-	suite.Require().Equal(202, resp.StatusCode())
-	suite.Require().True(successAddOrder.Success)
-
-	// Загрузка схемы вознаграждения в сервис Accraul (accrual_linux_amd64)
-	match := "match_" + strconv.Itoa(rand.IntN(100000))
-	rewardSchema := RewardSchema{
-		Match:      match,
-		Reward:     20,
-		RewardType: "%",
-	}
-	resp, err = suite.client.R().
-		SetBody(rewardSchema).
-		SetHeader("Content-Type", "application/json").
-		Post(suite.cfg.AccrualSystemAddress + "/api/goods")
-	suite.Require().NoError(err)
-	suite.Require().Equal(200, resp.StatusCode())
-
-	// Загрузка заказа в сервис Accraul (accrual_linux_amd64)
-	accraulOrder := AddAccrualOrder{
-		Order: number,
-		Goods: []Good{{
-			Description: match,
-			Price:       100,
-		}},
-	}
-	resp, err = suite.client.R().
-		SetBody(accraulOrder).
-		SetHeader("Content-Type", "application/json").
-		Post(suite.cfg.AccrualSystemAddress + "/api/orders")
-	suite.Require().NoError(err)
-	suite.Require().Equal(202, resp.StatusCode())
-
-	// Получение списка заказов и проверка что заказ успешен
-	var orderAccrual float32
-	ticker := time.NewTicker(time.Duration(5) * time.Second)
-	defer ticker.Stop()
-	var attempt int64
-	var maxAttempts int64 = 20
-	for {
-		<-ticker.C
-		var orders []OrderReponse
-		resp, err = suite.client.R().
-			SetResult(&orders).
+	suite.Run("Регистрация пользователя", func() {
+		var successRegister storage.Success
+		resp, err := suite.client.R().
+			SetResult(&successRegister).
+			SetBody(user).
 			SetHeader("Content-Type", "application/json").
-			SetHeader("Authorization", "Bearer "+successLogin.Token).
-			Get(ts.URL + "/api/user/orders")
+			Post(ts.URL + "/api/user/register")
 		suite.Require().NoError(err)
 		suite.Require().Equal(200, resp.StatusCode())
-		suite.Require().Len(orders, 1)
-		suite.Require().Equal(orders[0].Number, number)
-		status := orders[0].Status
-		if attempt > maxAttempts {
-			suite.Require().NoError(errors.New("too many attempts"))
+		suite.Require().True(successRegister.Success)
+	})
+
+	var successLogin handlers.SuccessLogin
+
+	suite.Run("Логин пользователя", func() {
+		resp, err := suite.client.R().
+			SetResult(&successLogin).
+			SetBody(user).
+			SetHeader("Content-Type", "application/json").
+			Post(ts.URL + "/api/user/login")
+		suite.Require().NoError(err)
+		suite.Require().Equal(200, resp.StatusCode())
+		suite.Require().True(successLogin.Success)
+	})
+
+	number := goluhn.Generate(9)
+
+	suite.Run("Загрузка заказа", func() {
+		var successAddOrder storage.Success
+		resp, err := suite.client.R().
+			SetResult(&successAddOrder).
+			SetBody(number).
+			SetHeader("Content-Type", "text/plain").
+			SetHeader("Authorization", "Bearer "+successLogin.Token).
+			Post(ts.URL + "/api/user/orders")
+		suite.Require().NoError(err)
+		suite.Require().Equal(202, resp.StatusCode())
+		suite.Require().True(successAddOrder.Success)
+	})
+
+	match := "match_" + strconv.Itoa(rand.IntN(100000))
+
+	suite.Run("Загрузка схемы вознаграждения в сервис Accraul", func() {
+		rewardSchema := RewardSchema{
+			Match:      match,
+			Reward:     20,
+			RewardType: "%",
+		}
+		resp, err := suite.client.R().
+			SetBody(rewardSchema).
+			SetHeader("Content-Type", "application/json").
+			Post(suite.cfg.AccrualSystemAddress + "/api/goods")
+		suite.Require().NoError(err)
+		suite.Require().Equal(200, resp.StatusCode())
+	})
+
+	suite.Run("Загрузка заказа в сервис Accraul", func() {
+		accraulOrder := AddAccrualOrder{
+			Order: number,
+			Goods: []Good{{
+				Description: match,
+				Price:       100,
+			}},
+		}
+		resp, err := suite.client.R().
+			SetBody(accraulOrder).
+			SetHeader("Content-Type", "application/json").
+			Post(suite.cfg.AccrualSystemAddress + "/api/orders")
+		suite.Require().NoError(err)
+		suite.Require().Equal(202, resp.StatusCode())
+	})
+
+	var orderAccrual float32
+
+	suite.Run("Получение списка заказов и проверка что заказ успешен", func() {
+		ticker := time.NewTicker(time.Duration(5) * time.Second)
+		defer ticker.Stop()
+		var attempt int64
+		var maxAttempts int64 = 20
+		for {
+			<-ticker.C
+			var orders []OrderReponse
+			resp, err := suite.client.R().
+				SetResult(&orders).
+				SetHeader("Content-Type", "application/json").
+				SetHeader("Authorization", "Bearer "+successLogin.Token).
+				Get(ts.URL + "/api/user/orders")
+			suite.Require().NoError(err)
+			suite.Require().Equal(200, resp.StatusCode())
+			suite.Require().Len(orders, 1)
+			suite.Require().Equal(orders[0].Number, number)
+			status := orders[0].Status
+			if attempt > maxAttempts {
+				suite.Require().NoError(errors.New("too many attempts"))
+				break
+			}
+			if status == "NEW" || status == "PROCESSING" || status == "REGISTERED" {
+				attempt++
+				continue
+			}
+			suite.Require().Positive(orders[0].Accrual)
+			orderAccrual = orders[0].Accrual
 			break
 		}
-		if status == "NEW" || status == "PROCESSING" || status == "REGISTERED" {
-			attempt++
-			continue
-		}
-		suite.Require().Positive(orders[0].Accrual)
-		orderAccrual = orders[0].Accrual
-		break
-	}
+	})
 
-	// Списание средств со счета пользователя
 	sumToWidraw := float32(rand.Int64N(int64(orderAccrual)))
-	suite.logger.Info("sumToWidraw: ", sumToWidraw)
-	withdrawOrder := handlers.Withdraw{
-		Order: number,
-		Sum:   sumToWidraw,
-	}
-	var successWithdraw storage.Success
-	resp, err = suite.client.R().
-		SetResult(&successWithdraw).
-		SetBody(withdrawOrder).
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+successLogin.Token).
-		Post(ts.URL + "/api/user/balance/withdraw")
-	suite.Require().NoError(err)
-	suite.Require().Equal(200, resp.StatusCode())
-	suite.Require().True(successWithdraw.Success)
 
-	// Проверка баланса пользователя
-	var userBalance handlers.UserBalanceInfo
-	resp, err = suite.client.R().
-		SetResult(&userBalance).
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+successLogin.Token).
-		Get(ts.URL + "/api/user/balance")
-	suite.Require().NoError(err)
-	suite.Require().Equal(200, resp.StatusCode())
-	suite.Require().Equal(int64(sumToWidraw), int64(userBalance.Withdrawn))
-	suite.Require().Equal(int64(orderAccrual-sumToWidraw), int64(userBalance.Current))
+	suite.Run("Списание средств со счета пользователя", func() {
+		withdrawOrder := handlers.Withdraw{
+			Order: number,
+			Sum:   sumToWidraw,
+		}
+		var successWithdraw storage.Success
+		resp, err := suite.client.R().
+			SetResult(&successWithdraw).
+			SetBody(withdrawOrder).
+			SetHeader("Content-Type", "application/json").
+			SetHeader("Authorization", "Bearer "+successLogin.Token).
+			Post(ts.URL + "/api/user/balance/withdraw")
+		suite.Require().NoError(err)
+		suite.Require().Equal(200, resp.StatusCode())
+		suite.Require().True(successWithdraw.Success)
+	})
 
-	// Список заказов со списанием
-	var withdrawals []WithdrawalsReponse
-	resp, err = suite.client.R().
-		SetResult(&withdrawals).
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+successLogin.Token).
-		Get(ts.URL + "/api/user/withdrawals")
-	suite.Require().NoError(err)
-	suite.Require().Equal(200, resp.StatusCode())
-	suite.Require().Len(withdrawals, 1)
-	suite.Require().Equal(withdrawals[0].Order, number)
-	suite.Require().Equal(int64(withdrawals[0].Sum), int64(sumToWidraw))
+	suite.Run("Проверка баланса пользователя", func() {
+		var userBalance handlers.UserBalanceInfo
+		resp, err := suite.client.R().
+			SetResult(&userBalance).
+			SetHeader("Content-Type", "application/json").
+			SetHeader("Authorization", "Bearer "+successLogin.Token).
+			Get(ts.URL + "/api/user/balance")
+		suite.Require().NoError(err)
+		suite.Require().Equal(200, resp.StatusCode())
+		suite.Require().Equal(int64(sumToWidraw), int64(userBalance.Withdrawn))
+		suite.Require().Equal(int64(orderAccrual-sumToWidraw), int64(userBalance.Current))
+	})
+
+	suite.Run("Проверка баланса пользователя", func() {
+		var withdrawals []WithdrawalsReponse
+		resp, err := suite.client.R().
+			SetResult(&withdrawals).
+			SetHeader("Content-Type", "application/json").
+			SetHeader("Authorization", "Bearer "+successLogin.Token).
+			Get(ts.URL + "/api/user/withdrawals")
+		suite.Require().NoError(err)
+		suite.Require().Equal(200, resp.StatusCode())
+		suite.Require().Len(withdrawals, 1)
+		suite.Require().Equal(withdrawals[0].Order, number)
+		suite.Require().Equal(int64(withdrawals[0].Sum), int64(sumToWidraw))
+	})
 }

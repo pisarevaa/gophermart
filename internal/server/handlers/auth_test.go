@@ -40,7 +40,7 @@ func TestAgentSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
 }
 
-func (suite *ServerTestSuite) TestRegisterUser() {
+func (suite *ServerTestSuite) TestRegisterUserMockDB() {
 	ctrl := gomock.NewController(suite.T())
 	defer ctrl.Finish()
 
@@ -69,7 +69,7 @@ func (suite *ServerTestSuite) TestRegisterUser() {
 	suite.Require().Equal(200, resp.StatusCode())
 }
 
-func (suite *ServerTestSuite) TestLogin() {
+func (suite *ServerTestSuite) TestLoginMockDB() {
 	ctrl := gomock.NewController(suite.T())
 	defer ctrl.Finish()
 
@@ -96,6 +96,31 @@ func (suite *ServerTestSuite) TestLogin() {
 	}
 
 	resp, err := suite.client.R().
+		SetBody(user).
+		SetHeader("Content-Type", "application/json").
+		Post(ts.URL + "/api/user/login")
+	suite.Require().NoError(err)
+	suite.Require().Equal(200, resp.StatusCode())
+}
+
+func (suite *ServerTestSuite) TestRegisterUserAndLoginInMemory() {
+	m := storage.NewMemory()
+
+	ts := httptest.NewServer(server.NewRouter(suite.cfg, suite.logger, m))
+	defer ts.Close()
+
+	user := storage.RegisterUser{
+		Login:    "test",
+		Password: "123",
+	}
+	resp, err := suite.client.R().
+		SetBody(user).
+		SetHeader("Content-Type", "application/json").
+		Post(ts.URL + "/api/user/register")
+	suite.Require().NoError(err)
+	suite.Require().Equal(200, resp.StatusCode())
+
+	resp, err = suite.client.R().
 		SetBody(user).
 		SetHeader("Content-Type", "application/json").
 		Post(ts.URL + "/api/user/login")

@@ -121,7 +121,7 @@ func (dbpool *DBStorage) CloseConnection() {
 	dbpool.Close()
 }
 
-func (dbpool *DBStorage) BeginTransaction(ctx context.Context) (*DBTransaction, error) {
+func (dbpool *DBStorage) BeginTransaction(ctx context.Context) (Transaction, error) {
 	tx, err := dbpool.Begin(ctx)
 	if err != nil {
 		return nil, err
