@@ -1,0 +1,26 @@
+version: '2.4'
+
+services:
+
+  db:
+    restart: unless-stopped
+    networks:
+      - app-network
+    image: postgres:13.3-alpine
+    volumes:
+      - gophermart_pgdata:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_PORT=${DB_PORT}
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  gophermart_pgdata:
